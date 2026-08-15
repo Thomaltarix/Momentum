@@ -19,6 +19,14 @@ class HealthSyncRepository {
     );
   }
 
+  Future<HealthSnapshot?> fetchSnapshot(DateTime date) async {
+    final DateTime normalized = _normalizeDate(date);
+    final row = await (_db.select(
+      _db.healthSnapshots,
+    )..where((t) => t.date.equals(normalized))).getSingleOrNull();
+    return row == null ? null : _toDomain(row);
+  }
+
   Future<bool> hasPermissions() => _client.hasPermissions();
 
   Future<bool> requestPermissions() => _client.requestPermissions();

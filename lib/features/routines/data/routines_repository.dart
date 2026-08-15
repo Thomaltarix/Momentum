@@ -18,12 +18,25 @@ class RoutinesRepository {
     );
   }
 
+  Future<List<Routine>> fetchAllRoutines() async {
+    final rows = await _db.select(_db.routines).get();
+    return rows.map(_toDomain).toList();
+  }
+
   Stream<Set<int>> watchCompletedRoutineIdsForDate(DateTime date) {
     final normalized = _normalizeDate(date);
     return (_db.select(_db.routineCompletions)
           ..where((t) => t.completedAt.equals(normalized)))
         .watch()
         .map((rows) => rows.map((row) => row.routineId).toSet());
+  }
+
+  Future<Set<int>> fetchCompletedRoutineIdsForDate(DateTime date) async {
+    final normalized = _normalizeDate(date);
+    final rows = await (_db.select(
+      _db.routineCompletions,
+    )..where((t) => t.completedAt.equals(normalized))).get();
+    return rows.map((row) => row.routineId).toSet();
   }
 
   Future<void> addRoutine({

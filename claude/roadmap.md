@@ -26,7 +26,7 @@ Branch: `feat/flutter-scaffold`.
 
 Branch: `feat/routines`. Verified end-to-end on the Nothing Phone: save, complete, delete, and confirmed via `dumpsys alarm` that the OS alarm is actually scheduled/cancelled. Found and fixed along the way: exact-alarm scheduling threw `exact_alarms_not_permitted` and silently blocked save on Android 13+ when the "Alarms & reminders" system permission isn't granted — `NotificationService` now checks `canScheduleExactNotifications()` per call and falls back to inexact scheduling instead of assuming exact is available.
 
-## Phase 3 — Health Connect integration (done, pending live verification)
+## Phase 3 — Health Connect integration (done)
 
 - `health_sync` feature: request Health Connect permissions (steps, workouts, nutrition) via `HealthConnectClient` — the only file that imports `package:health`, per `features.md`.
 - Read today's steps (`getTotalStepsInInterval`), workout count, and nutrition (calories/macros where the source app provides them) from Health Connect, cache into `health_snapshots`.
@@ -39,7 +39,7 @@ Deviations from the original plan, both because Phase 5 (onboarding/goals) hasn'
 
 Also required, beyond the `health` package's own setup: `minSdk` raised from Flutter's default to 26 (Health Connect's floor), `MainActivity` changed from `FlutterActivity` to `FlutterFragmentActivity` (needed for the Android 14 permission flow's `registerForActivityResult`), and the manifest additions from the package's Android setup guide (Health Connect queries, `READ_STEPS`/`READ_EXERCISE`/`READ_NUTRITION`/`ACTIVITY_RECOGNITION` permissions, the `ViewPermissionUsageActivity` alias, and the `ACTION_SHOW_PERMISSIONS_RATIONALE` intent filter on `MainActivity`).
 
-Branch: `feat/health-sync`. **Not yet verified on-device** — built with this session's assistant working solo while the phone was unavailable (`flutter analyze`/`flutter test`/`flutter build apk` all pass, but nobody has actually granted Health Connect permissions and looked at the card yet). First thing to check next time the phone is in hand: does the permission prompt actually appear and route correctly through the `ViewPermissionUsageActivity` alias, and do real steps/workouts/nutrition from Health Connect show up in the card.
+Branch: `feat/health-sync`. Verified on-device: the Health Connect permission screen appeared correctly (Activité/Exercice/Pas/Nutrition categories, matching the requested types), granting access routed back into the app cleanly, and the summary card showed real data — actual steps pulled live (4933/5000 that day), with Séance/Calories correctly showing "—" for a day with no logged workout or meal yet rather than a fake zero.
 
 ## Phase 4 — Gamification
 

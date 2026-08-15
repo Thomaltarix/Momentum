@@ -41,13 +41,32 @@ class NotificationService {
     await _plugin.initialize(settings: settings);
   }
 
+  AndroidFlutterLocalNotificationsPlugin? get _androidPlugin =>
+      _plugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
+
   Future<bool> requestPermission() async {
-    final AndroidFlutterLocalNotificationsPlugin? androidPlugin = _plugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
-    final bool? granted =
-        await androidPlugin?.requestNotificationsPermission();
+    final bool? granted = await _androidPlugin?.requestNotificationsPermission();
     return granted ?? false;
+  }
+
+  /// "Alarms & reminders" is a special Android 13+ permission granted in
+  /// system settings, not a runtime dialog — calling this always navigates
+  /// the user out of the app. Not called automatically anywhere; exact
+  /// timing is a nice-to-have (see [_scheduleMode]'s inexact fallback), so
+  /// this is offered as an explicit opt-in from settings (Phase 5), not
+  /// forced during routine creation.
+  Future<void> requestExactAlarmsPermission() async {
+    await _androidPlugin?.requestExactAlarmsPermission();
+  }
+
+  Future<AndroidScheduleMode> _scheduleMode() async {
+    final bool canScheduleExact =
+        await _androidPlugin?.canScheduleExactNotifications() ?? false;
+    return canScheduleExact
+        ? AndroidScheduleMode.exactAllowWhileIdle
+        : AndroidScheduleMode.inexactAllowWhileIdle;
   }
 
   Future<void> scheduleDailyAt({
@@ -63,8 +82,28 @@ class NotificationService {
       body: body,
       scheduledDate: _nextInstanceOf(hour, minute),
       notificationDetails: const NotificationDetails(android: _androidDetails),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      androidScheduleMode: await _scheduleMode(),
       matchDateTimeComponents: DateTimeComponents.time,
+    );
+  }
+
+  /// [weekday] uses DateTime.monday..DateTime.sunday.
+  Future<void> scheduleWeeklyAt({
+    required int id,
+    required String title,
+    required String body,
+    required int weekday,
+    required int hour,
+    required int minute,
+  }) async {
+    await _plugin.zonedSchedule(
+      id: id,
+      title: title,
+      body: body,
+      scheduledDate: _nextInstanceOfWeekday(weekday, hour, minute),
+      notificationDetails: const NotificationDetails(android: _androidDetails),
+      androidScheduleMode: await _scheduleMode(),
+      matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
     );
   }
 
@@ -83,6 +122,14 @@ class NotificationService {
       minute,
     );
     if (scheduled.isBefore(now)) {
+      scheduled = scheduled.add(const Duration(days: 1));
+    }
+    return scheduled;
+  }
+
+  tz.TZDateTime _nextInstanceOfWeekday(int weekday, int hour, int minute) {
+    tz.TZDateTime scheduled = _nextInstanceOf(hour, minute);
+    while (scheduled.weekday != weekday) {
       scheduled = scheduled.add(const Duration(days: 1));
     }
     return scheduled;

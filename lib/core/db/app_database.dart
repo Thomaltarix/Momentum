@@ -6,13 +6,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+import '../../features/health_sync/data/health_snapshots_table.dart';
 import '../../features/routines/data/routines_table.dart';
 import '../../features/routines/domain/routine_recurrence.dart';
 import '../../features/routines/domain/routine_trigger.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [Routines, RoutineCompletions])
+@DriftDatabase(tables: [Routines, RoutineCompletions, HealthSnapshots])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 

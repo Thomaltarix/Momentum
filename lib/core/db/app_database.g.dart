@@ -749,12 +749,548 @@ class RoutineCompletionsCompanion
   }
 }
 
+class $HealthSnapshotsTable extends HealthSnapshots
+    with TableInfo<$HealthSnapshotsTable, HealthSnapshotRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $HealthSnapshotsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+    'date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _stepsMeta = const VerificationMeta('steps');
+  @override
+  late final GeneratedColumn<int> steps = GeneratedColumn<int>(
+    'steps',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _workoutsCompletedMeta = const VerificationMeta(
+    'workoutsCompleted',
+  );
+  @override
+  late final GeneratedColumn<int> workoutsCompleted = GeneratedColumn<int>(
+    'workouts_completed',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _syncedAtMeta = const VerificationMeta(
+    'syncedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> syncedAt = GeneratedColumn<DateTime>(
+    'synced_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _caloriesConsumedMeta = const VerificationMeta(
+    'caloriesConsumed',
+  );
+  @override
+  late final GeneratedColumn<int> caloriesConsumed = GeneratedColumn<int>(
+    'calories_consumed',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _proteinGramsMeta = const VerificationMeta(
+    'proteinGrams',
+  );
+  @override
+  late final GeneratedColumn<double> proteinGrams = GeneratedColumn<double>(
+    'protein_grams',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _carbsGramsMeta = const VerificationMeta(
+    'carbsGrams',
+  );
+  @override
+  late final GeneratedColumn<double> carbsGrams = GeneratedColumn<double>(
+    'carbs_grams',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _fatGramsMeta = const VerificationMeta(
+    'fatGrams',
+  );
+  @override
+  late final GeneratedColumn<double> fatGrams = GeneratedColumn<double>(
+    'fat_grams',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    date,
+    steps,
+    workoutsCompleted,
+    syncedAt,
+    caloriesConsumed,
+    proteinGrams,
+    carbsGrams,
+    fatGrams,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'health_snapshots';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<HealthSnapshotRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    if (data.containsKey('steps')) {
+      context.handle(
+        _stepsMeta,
+        steps.isAcceptableOrUnknown(data['steps']!, _stepsMeta),
+      );
+    }
+    if (data.containsKey('workouts_completed')) {
+      context.handle(
+        _workoutsCompletedMeta,
+        workoutsCompleted.isAcceptableOrUnknown(
+          data['workouts_completed']!,
+          _workoutsCompletedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('synced_at')) {
+      context.handle(
+        _syncedAtMeta,
+        syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_syncedAtMeta);
+    }
+    if (data.containsKey('calories_consumed')) {
+      context.handle(
+        _caloriesConsumedMeta,
+        caloriesConsumed.isAcceptableOrUnknown(
+          data['calories_consumed']!,
+          _caloriesConsumedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('protein_grams')) {
+      context.handle(
+        _proteinGramsMeta,
+        proteinGrams.isAcceptableOrUnknown(
+          data['protein_grams']!,
+          _proteinGramsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('carbs_grams')) {
+      context.handle(
+        _carbsGramsMeta,
+        carbsGrams.isAcceptableOrUnknown(data['carbs_grams']!, _carbsGramsMeta),
+      );
+    }
+    if (data.containsKey('fat_grams')) {
+      context.handle(
+        _fatGramsMeta,
+        fatGrams.isAcceptableOrUnknown(data['fat_grams']!, _fatGramsMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {date};
+  @override
+  HealthSnapshotRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return HealthSnapshotRow(
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date'],
+      )!,
+      steps: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}steps'],
+      )!,
+      workoutsCompleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}workouts_completed'],
+      )!,
+      syncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}synced_at'],
+      )!,
+      caloriesConsumed: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}calories_consumed'],
+      ),
+      proteinGrams: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}protein_grams'],
+      ),
+      carbsGrams: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}carbs_grams'],
+      ),
+      fatGrams: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}fat_grams'],
+      ),
+    );
+  }
+
+  @override
+  $HealthSnapshotsTable createAlias(String alias) {
+    return $HealthSnapshotsTable(attachedDatabase, alias);
+  }
+}
+
+class HealthSnapshotRow extends DataClass
+    implements Insertable<HealthSnapshotRow> {
+  final DateTime date;
+  final int steps;
+  final int workoutsCompleted;
+  final DateTime syncedAt;
+  final int? caloriesConsumed;
+  final double? proteinGrams;
+  final double? carbsGrams;
+  final double? fatGrams;
+  const HealthSnapshotRow({
+    required this.date,
+    required this.steps,
+    required this.workoutsCompleted,
+    required this.syncedAt,
+    this.caloriesConsumed,
+    this.proteinGrams,
+    this.carbsGrams,
+    this.fatGrams,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['date'] = Variable<DateTime>(date);
+    map['steps'] = Variable<int>(steps);
+    map['workouts_completed'] = Variable<int>(workoutsCompleted);
+    map['synced_at'] = Variable<DateTime>(syncedAt);
+    if (!nullToAbsent || caloriesConsumed != null) {
+      map['calories_consumed'] = Variable<int>(caloriesConsumed);
+    }
+    if (!nullToAbsent || proteinGrams != null) {
+      map['protein_grams'] = Variable<double>(proteinGrams);
+    }
+    if (!nullToAbsent || carbsGrams != null) {
+      map['carbs_grams'] = Variable<double>(carbsGrams);
+    }
+    if (!nullToAbsent || fatGrams != null) {
+      map['fat_grams'] = Variable<double>(fatGrams);
+    }
+    return map;
+  }
+
+  HealthSnapshotsCompanion toCompanion(bool nullToAbsent) {
+    return HealthSnapshotsCompanion(
+      date: Value(date),
+      steps: Value(steps),
+      workoutsCompleted: Value(workoutsCompleted),
+      syncedAt: Value(syncedAt),
+      caloriesConsumed: caloriesConsumed == null && nullToAbsent
+          ? const Value.absent()
+          : Value(caloriesConsumed),
+      proteinGrams: proteinGrams == null && nullToAbsent
+          ? const Value.absent()
+          : Value(proteinGrams),
+      carbsGrams: carbsGrams == null && nullToAbsent
+          ? const Value.absent()
+          : Value(carbsGrams),
+      fatGrams: fatGrams == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fatGrams),
+    );
+  }
+
+  factory HealthSnapshotRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return HealthSnapshotRow(
+      date: serializer.fromJson<DateTime>(json['date']),
+      steps: serializer.fromJson<int>(json['steps']),
+      workoutsCompleted: serializer.fromJson<int>(json['workoutsCompleted']),
+      syncedAt: serializer.fromJson<DateTime>(json['syncedAt']),
+      caloriesConsumed: serializer.fromJson<int?>(json['caloriesConsumed']),
+      proteinGrams: serializer.fromJson<double?>(json['proteinGrams']),
+      carbsGrams: serializer.fromJson<double?>(json['carbsGrams']),
+      fatGrams: serializer.fromJson<double?>(json['fatGrams']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'date': serializer.toJson<DateTime>(date),
+      'steps': serializer.toJson<int>(steps),
+      'workoutsCompleted': serializer.toJson<int>(workoutsCompleted),
+      'syncedAt': serializer.toJson<DateTime>(syncedAt),
+      'caloriesConsumed': serializer.toJson<int?>(caloriesConsumed),
+      'proteinGrams': serializer.toJson<double?>(proteinGrams),
+      'carbsGrams': serializer.toJson<double?>(carbsGrams),
+      'fatGrams': serializer.toJson<double?>(fatGrams),
+    };
+  }
+
+  HealthSnapshotRow copyWith({
+    DateTime? date,
+    int? steps,
+    int? workoutsCompleted,
+    DateTime? syncedAt,
+    Value<int?> caloriesConsumed = const Value.absent(),
+    Value<double?> proteinGrams = const Value.absent(),
+    Value<double?> carbsGrams = const Value.absent(),
+    Value<double?> fatGrams = const Value.absent(),
+  }) => HealthSnapshotRow(
+    date: date ?? this.date,
+    steps: steps ?? this.steps,
+    workoutsCompleted: workoutsCompleted ?? this.workoutsCompleted,
+    syncedAt: syncedAt ?? this.syncedAt,
+    caloriesConsumed: caloriesConsumed.present
+        ? caloriesConsumed.value
+        : this.caloriesConsumed,
+    proteinGrams: proteinGrams.present ? proteinGrams.value : this.proteinGrams,
+    carbsGrams: carbsGrams.present ? carbsGrams.value : this.carbsGrams,
+    fatGrams: fatGrams.present ? fatGrams.value : this.fatGrams,
+  );
+  HealthSnapshotRow copyWithCompanion(HealthSnapshotsCompanion data) {
+    return HealthSnapshotRow(
+      date: data.date.present ? data.date.value : this.date,
+      steps: data.steps.present ? data.steps.value : this.steps,
+      workoutsCompleted: data.workoutsCompleted.present
+          ? data.workoutsCompleted.value
+          : this.workoutsCompleted,
+      syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
+      caloriesConsumed: data.caloriesConsumed.present
+          ? data.caloriesConsumed.value
+          : this.caloriesConsumed,
+      proteinGrams: data.proteinGrams.present
+          ? data.proteinGrams.value
+          : this.proteinGrams,
+      carbsGrams: data.carbsGrams.present
+          ? data.carbsGrams.value
+          : this.carbsGrams,
+      fatGrams: data.fatGrams.present ? data.fatGrams.value : this.fatGrams,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HealthSnapshotRow(')
+          ..write('date: $date, ')
+          ..write('steps: $steps, ')
+          ..write('workoutsCompleted: $workoutsCompleted, ')
+          ..write('syncedAt: $syncedAt, ')
+          ..write('caloriesConsumed: $caloriesConsumed, ')
+          ..write('proteinGrams: $proteinGrams, ')
+          ..write('carbsGrams: $carbsGrams, ')
+          ..write('fatGrams: $fatGrams')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    date,
+    steps,
+    workoutsCompleted,
+    syncedAt,
+    caloriesConsumed,
+    proteinGrams,
+    carbsGrams,
+    fatGrams,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is HealthSnapshotRow &&
+          other.date == this.date &&
+          other.steps == this.steps &&
+          other.workoutsCompleted == this.workoutsCompleted &&
+          other.syncedAt == this.syncedAt &&
+          other.caloriesConsumed == this.caloriesConsumed &&
+          other.proteinGrams == this.proteinGrams &&
+          other.carbsGrams == this.carbsGrams &&
+          other.fatGrams == this.fatGrams);
+}
+
+class HealthSnapshotsCompanion extends UpdateCompanion<HealthSnapshotRow> {
+  final Value<DateTime> date;
+  final Value<int> steps;
+  final Value<int> workoutsCompleted;
+  final Value<DateTime> syncedAt;
+  final Value<int?> caloriesConsumed;
+  final Value<double?> proteinGrams;
+  final Value<double?> carbsGrams;
+  final Value<double?> fatGrams;
+  final Value<int> rowid;
+  const HealthSnapshotsCompanion({
+    this.date = const Value.absent(),
+    this.steps = const Value.absent(),
+    this.workoutsCompleted = const Value.absent(),
+    this.syncedAt = const Value.absent(),
+    this.caloriesConsumed = const Value.absent(),
+    this.proteinGrams = const Value.absent(),
+    this.carbsGrams = const Value.absent(),
+    this.fatGrams = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  HealthSnapshotsCompanion.insert({
+    required DateTime date,
+    this.steps = const Value.absent(),
+    this.workoutsCompleted = const Value.absent(),
+    required DateTime syncedAt,
+    this.caloriesConsumed = const Value.absent(),
+    this.proteinGrams = const Value.absent(),
+    this.carbsGrams = const Value.absent(),
+    this.fatGrams = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : date = Value(date),
+       syncedAt = Value(syncedAt);
+  static Insertable<HealthSnapshotRow> custom({
+    Expression<DateTime>? date,
+    Expression<int>? steps,
+    Expression<int>? workoutsCompleted,
+    Expression<DateTime>? syncedAt,
+    Expression<int>? caloriesConsumed,
+    Expression<double>? proteinGrams,
+    Expression<double>? carbsGrams,
+    Expression<double>? fatGrams,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (date != null) 'date': date,
+      if (steps != null) 'steps': steps,
+      if (workoutsCompleted != null) 'workouts_completed': workoutsCompleted,
+      if (syncedAt != null) 'synced_at': syncedAt,
+      if (caloriesConsumed != null) 'calories_consumed': caloriesConsumed,
+      if (proteinGrams != null) 'protein_grams': proteinGrams,
+      if (carbsGrams != null) 'carbs_grams': carbsGrams,
+      if (fatGrams != null) 'fat_grams': fatGrams,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  HealthSnapshotsCompanion copyWith({
+    Value<DateTime>? date,
+    Value<int>? steps,
+    Value<int>? workoutsCompleted,
+    Value<DateTime>? syncedAt,
+    Value<int?>? caloriesConsumed,
+    Value<double?>? proteinGrams,
+    Value<double?>? carbsGrams,
+    Value<double?>? fatGrams,
+    Value<int>? rowid,
+  }) {
+    return HealthSnapshotsCompanion(
+      date: date ?? this.date,
+      steps: steps ?? this.steps,
+      workoutsCompleted: workoutsCompleted ?? this.workoutsCompleted,
+      syncedAt: syncedAt ?? this.syncedAt,
+      caloriesConsumed: caloriesConsumed ?? this.caloriesConsumed,
+      proteinGrams: proteinGrams ?? this.proteinGrams,
+      carbsGrams: carbsGrams ?? this.carbsGrams,
+      fatGrams: fatGrams ?? this.fatGrams,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    if (steps.present) {
+      map['steps'] = Variable<int>(steps.value);
+    }
+    if (workoutsCompleted.present) {
+      map['workouts_completed'] = Variable<int>(workoutsCompleted.value);
+    }
+    if (syncedAt.present) {
+      map['synced_at'] = Variable<DateTime>(syncedAt.value);
+    }
+    if (caloriesConsumed.present) {
+      map['calories_consumed'] = Variable<int>(caloriesConsumed.value);
+    }
+    if (proteinGrams.present) {
+      map['protein_grams'] = Variable<double>(proteinGrams.value);
+    }
+    if (carbsGrams.present) {
+      map['carbs_grams'] = Variable<double>(carbsGrams.value);
+    }
+    if (fatGrams.present) {
+      map['fat_grams'] = Variable<double>(fatGrams.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HealthSnapshotsCompanion(')
+          ..write('date: $date, ')
+          ..write('steps: $steps, ')
+          ..write('workoutsCompleted: $workoutsCompleted, ')
+          ..write('syncedAt: $syncedAt, ')
+          ..write('caloriesConsumed: $caloriesConsumed, ')
+          ..write('proteinGrams: $proteinGrams, ')
+          ..write('carbsGrams: $carbsGrams, ')
+          ..write('fatGrams: $fatGrams, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $RoutinesTable routines = $RoutinesTable(this);
   late final $RoutineCompletionsTable routineCompletions =
       $RoutineCompletionsTable(this);
+  late final $HealthSnapshotsTable healthSnapshots = $HealthSnapshotsTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -762,6 +1298,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     routines,
     routineCompletions,
+    healthSnapshots,
   ];
 }
 
@@ -1400,6 +1937,277 @@ typedef $$RoutineCompletionsTableProcessedTableManager =
       RoutineCompletionRow,
       PrefetchHooks Function({bool routineId})
     >;
+typedef $$HealthSnapshotsTableCreateCompanionBuilder =
+    HealthSnapshotsCompanion Function({
+      required DateTime date,
+      Value<int> steps,
+      Value<int> workoutsCompleted,
+      required DateTime syncedAt,
+      Value<int?> caloriesConsumed,
+      Value<double?> proteinGrams,
+      Value<double?> carbsGrams,
+      Value<double?> fatGrams,
+      Value<int> rowid,
+    });
+typedef $$HealthSnapshotsTableUpdateCompanionBuilder =
+    HealthSnapshotsCompanion Function({
+      Value<DateTime> date,
+      Value<int> steps,
+      Value<int> workoutsCompleted,
+      Value<DateTime> syncedAt,
+      Value<int?> caloriesConsumed,
+      Value<double?> proteinGrams,
+      Value<double?> carbsGrams,
+      Value<double?> fatGrams,
+      Value<int> rowid,
+    });
+
+class $$HealthSnapshotsTableFilterComposer
+    extends Composer<_$AppDatabase, $HealthSnapshotsTable> {
+  $$HealthSnapshotsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get steps => $composableBuilder(
+    column: $table.steps,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get workoutsCompleted => $composableBuilder(
+    column: $table.workoutsCompleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get caloriesConsumed => $composableBuilder(
+    column: $table.caloriesConsumed,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get proteinGrams => $composableBuilder(
+    column: $table.proteinGrams,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get carbsGrams => $composableBuilder(
+    column: $table.carbsGrams,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get fatGrams => $composableBuilder(
+    column: $table.fatGrams,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$HealthSnapshotsTableOrderingComposer
+    extends Composer<_$AppDatabase, $HealthSnapshotsTable> {
+  $$HealthSnapshotsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get steps => $composableBuilder(
+    column: $table.steps,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get workoutsCompleted => $composableBuilder(
+    column: $table.workoutsCompleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get caloriesConsumed => $composableBuilder(
+    column: $table.caloriesConsumed,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get proteinGrams => $composableBuilder(
+    column: $table.proteinGrams,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get carbsGrams => $composableBuilder(
+    column: $table.carbsGrams,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get fatGrams => $composableBuilder(
+    column: $table.fatGrams,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$HealthSnapshotsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $HealthSnapshotsTable> {
+  $$HealthSnapshotsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<DateTime> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<int> get steps =>
+      $composableBuilder(column: $table.steps, builder: (column) => column);
+
+  GeneratedColumn<int> get workoutsCompleted => $composableBuilder(
+    column: $table.workoutsCompleted,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get syncedAt =>
+      $composableBuilder(column: $table.syncedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get caloriesConsumed => $composableBuilder(
+    column: $table.caloriesConsumed,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get proteinGrams => $composableBuilder(
+    column: $table.proteinGrams,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get carbsGrams => $composableBuilder(
+    column: $table.carbsGrams,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get fatGrams =>
+      $composableBuilder(column: $table.fatGrams, builder: (column) => column);
+}
+
+class $$HealthSnapshotsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $HealthSnapshotsTable,
+          HealthSnapshotRow,
+          $$HealthSnapshotsTableFilterComposer,
+          $$HealthSnapshotsTableOrderingComposer,
+          $$HealthSnapshotsTableAnnotationComposer,
+          $$HealthSnapshotsTableCreateCompanionBuilder,
+          $$HealthSnapshotsTableUpdateCompanionBuilder,
+          (
+            HealthSnapshotRow,
+            BaseReferences<
+              _$AppDatabase,
+              $HealthSnapshotsTable,
+              HealthSnapshotRow
+            >,
+          ),
+          HealthSnapshotRow,
+          PrefetchHooks Function()
+        > {
+  $$HealthSnapshotsTableTableManager(
+    _$AppDatabase db,
+    $HealthSnapshotsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$HealthSnapshotsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$HealthSnapshotsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$HealthSnapshotsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<DateTime> date = const Value.absent(),
+                Value<int> steps = const Value.absent(),
+                Value<int> workoutsCompleted = const Value.absent(),
+                Value<DateTime> syncedAt = const Value.absent(),
+                Value<int?> caloriesConsumed = const Value.absent(),
+                Value<double?> proteinGrams = const Value.absent(),
+                Value<double?> carbsGrams = const Value.absent(),
+                Value<double?> fatGrams = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => HealthSnapshotsCompanion(
+                date: date,
+                steps: steps,
+                workoutsCompleted: workoutsCompleted,
+                syncedAt: syncedAt,
+                caloriesConsumed: caloriesConsumed,
+                proteinGrams: proteinGrams,
+                carbsGrams: carbsGrams,
+                fatGrams: fatGrams,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required DateTime date,
+                Value<int> steps = const Value.absent(),
+                Value<int> workoutsCompleted = const Value.absent(),
+                required DateTime syncedAt,
+                Value<int?> caloriesConsumed = const Value.absent(),
+                Value<double?> proteinGrams = const Value.absent(),
+                Value<double?> carbsGrams = const Value.absent(),
+                Value<double?> fatGrams = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => HealthSnapshotsCompanion.insert(
+                date: date,
+                steps: steps,
+                workoutsCompleted: workoutsCompleted,
+                syncedAt: syncedAt,
+                caloriesConsumed: caloriesConsumed,
+                proteinGrams: proteinGrams,
+                carbsGrams: carbsGrams,
+                fatGrams: fatGrams,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$HealthSnapshotsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $HealthSnapshotsTable,
+      HealthSnapshotRow,
+      $$HealthSnapshotsTableFilterComposer,
+      $$HealthSnapshotsTableOrderingComposer,
+      $$HealthSnapshotsTableAnnotationComposer,
+      $$HealthSnapshotsTableCreateCompanionBuilder,
+      $$HealthSnapshotsTableUpdateCompanionBuilder,
+      (
+        HealthSnapshotRow,
+        BaseReferences<_$AppDatabase, $HealthSnapshotsTable, HealthSnapshotRow>,
+      ),
+      HealthSnapshotRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -1408,4 +2216,6 @@ class $AppDatabaseManager {
       $$RoutinesTableTableManager(_db, _db.routines);
   $$RoutineCompletionsTableTableManager get routineCompletions =>
       $$RoutineCompletionsTableTableManager(_db, _db.routineCompletions);
+  $$HealthSnapshotsTableTableManager get healthSnapshots =>
+      $$HealthSnapshotsTableTableManager(_db, _db.healthSnapshots);
 }

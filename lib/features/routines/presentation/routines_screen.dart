@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../health_sync/presentation/today_summary_card.dart';
 import '../domain/routine.dart';
 import '../domain/routine_schedule.dart';
 import 'add_routine_screen.dart';
@@ -16,35 +17,48 @@ class RoutinesScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Momentum')),
-      body: routinesAsync.when(
-        data: (routines) {
-          final today = DateTime.now();
-          final dueToday = routines
-              .where((routine) => isRoutineDueOn(routine, today))
-              .toList()
-            ..sort(
-              (a, b) => (a.scheduledTime ?? '').compareTo(
-                b.scheduledTime ?? '',
-              ),
-            );
+      body: Column(
+        children: [
+          const TodaySummaryCard(),
+          Expanded(
+            child: routinesAsync.when(
+              data: (routines) {
+                final today = DateTime.now();
+                final dueToday = routines
+                    .where((routine) => isRoutineDueOn(routine, today))
+                    .toList()
+                  ..sort(
+                    (a, b) => (a.scheduledTime ?? '').compareTo(
+                      b.scheduledTime ?? '',
+                    ),
+                  );
 
-          if (dueToday.isEmpty) {
-            return const Center(child: Text('Aucune routine aujourd\'hui.'));
-          }
+                if (dueToday.isEmpty) {
+                  return const Center(
+                    child: Text('Aucune routine aujourd\'hui.'),
+                  );
+                }
 
-          final completedIds = completedAsync.value ?? const <int>{};
+                final completedIds = completedAsync.value ?? const <int>{};
 
-          return ListView.builder(
-            itemCount: dueToday.length,
-            itemBuilder: (context, index) {
-              final routine = dueToday[index];
-              final isCompleted = completedIds.contains(routine.id);
-              return _RoutineTile(routine: routine, isCompleted: isCompleted);
-            },
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => Center(child: Text('Erreur: $error')),
+                return ListView.builder(
+                  itemCount: dueToday.length,
+                  itemBuilder: (context, index) {
+                    final routine = dueToday[index];
+                    final isCompleted = completedIds.contains(routine.id);
+                    return _RoutineTile(
+                      routine: routine,
+                      isCompleted: isCompleted,
+                    );
+                  },
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stackTrace) =>
+                  Center(child: Text('Erreur: $error')),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.of(context).push(

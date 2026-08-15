@@ -41,12 +41,14 @@ Also required, beyond the `health` package's own setup: `minSdk` raised from Flu
 
 Branch: `feat/health-sync`. Verified on-device: the Health Connect permission screen appeared correctly (Activité/Exercice/Pas/Nutrition categories, matching the requested types), granting access routed back into the app cleanly, and the summary card showed real data — actual steps pulled live (4933/5000 that day), with Séance/Calories correctly showing "—" for a day with no logged workout or meal yet rather than a fake zero.
 
-## Phase 4 — Gamification
+## Phase 4 — Gamification (done)
 
-- `gamification` feature: pure functions in `domain` for streak calculation (routines completed + health goals met) and XP/level thresholds.
-- Badge definitions as a fixed list; unlock check runs whenever `gamification_state` is (re)evaluated.
-- UI: streak counter and level/XP visible on the home screen, a dedicated screen for badge collection.
+- `gamification` feature: `evaluatePendingDays` in `domain` — a pure, unit-tested function that replays every day since the last evaluation (not just "today", so gaps between app opens still score correctly), computing streak/XP/level one day at a time. "Successful day" = every routine due that day was completed AND the step goal was met (no calorie goal exists yet — see Phase 3's note, same reasoning applies here).
+- Badge definitions as a fixed list (`badge_definitions.dart`); unlock check runs after each evaluation, keyed by `code` so an already-unlocked badge is never re-checked.
+- UI: a status strip (level/XP, streak, a trophy button) above the today summary card, and a dedicated `BadgesScreen` listing all definitions with locked/unlocked state.
 - This is the phase that turns "todo list with health stats" into the gamified experience that was the actual point of building a custom app instead of using existing ones.
+
+Branch: `feat/gamification`. Verified on-device, and it caught a real bug: reinstalling over an existing install (`adb install -r`, not a fresh `pm clear`) crashed with `SqliteException: no such table: gamification_states` — `AppDatabase.schemaVersion` had never been bumped past `1` despite three phases of tables being added, so Drift saw a matching version number and skipped creating anything new on an existing database. Fixed with a real `MigrationStrategy` (`onCreate: createAll`, `onUpgrade` from `<2` creates `GamificationStates`/`Badges`) and `schemaVersion` bumped to `2`, per the "never edit a past migration, add a new step" policy in `data-model.md`. Confirmed the migration runs cleanly against the phone's existing database (Health Connect data and permissions survived the upgrade) before this was called done.
 
 ## Phase 5 — Onboarding and polish
 

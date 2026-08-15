@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../gamification/presentation/gamification_status_strip.dart';
 import '../../health_sync/presentation/today_summary_card.dart';
 import '../domain/routine.dart';
 import '../domain/routine_schedule.dart';
@@ -19,6 +20,7 @@ class RoutinesScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Momentum')),
       body: Column(
         children: [
+          const GamificationStatusStrip(),
           const TodaySummaryCard(),
           Expanded(
             child: routinesAsync.when(

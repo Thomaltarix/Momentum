@@ -1282,6 +1282,676 @@ class HealthSnapshotsCompanion extends UpdateCompanion<HealthSnapshotRow> {
   }
 }
 
+class $GamificationStatesTable extends GamificationStates
+    with TableInfo<$GamificationStatesTable, GamificationStateRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GamificationStatesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _currentXpMeta = const VerificationMeta(
+    'currentXp',
+  );
+  @override
+  late final GeneratedColumn<int> currentXp = GeneratedColumn<int>(
+    'current_xp',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _currentLevelMeta = const VerificationMeta(
+    'currentLevel',
+  );
+  @override
+  late final GeneratedColumn<int> currentLevel = GeneratedColumn<int>(
+    'current_level',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _currentStreakMeta = const VerificationMeta(
+    'currentStreak',
+  );
+  @override
+  late final GeneratedColumn<int> currentStreak = GeneratedColumn<int>(
+    'current_streak',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _longestStreakMeta = const VerificationMeta(
+    'longestStreak',
+  );
+  @override
+  late final GeneratedColumn<int> longestStreak = GeneratedColumn<int>(
+    'longest_streak',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _lastEvaluatedDateMeta = const VerificationMeta(
+    'lastEvaluatedDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastEvaluatedDate =
+      GeneratedColumn<DateTime>(
+        'last_evaluated_date',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: true,
+      );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    currentXp,
+    currentLevel,
+    currentStreak,
+    longestStreak,
+    lastEvaluatedDate,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'gamification_states';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<GamificationStateRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('current_xp')) {
+      context.handle(
+        _currentXpMeta,
+        currentXp.isAcceptableOrUnknown(data['current_xp']!, _currentXpMeta),
+      );
+    }
+    if (data.containsKey('current_level')) {
+      context.handle(
+        _currentLevelMeta,
+        currentLevel.isAcceptableOrUnknown(
+          data['current_level']!,
+          _currentLevelMeta,
+        ),
+      );
+    }
+    if (data.containsKey('current_streak')) {
+      context.handle(
+        _currentStreakMeta,
+        currentStreak.isAcceptableOrUnknown(
+          data['current_streak']!,
+          _currentStreakMeta,
+        ),
+      );
+    }
+    if (data.containsKey('longest_streak')) {
+      context.handle(
+        _longestStreakMeta,
+        longestStreak.isAcceptableOrUnknown(
+          data['longest_streak']!,
+          _longestStreakMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_evaluated_date')) {
+      context.handle(
+        _lastEvaluatedDateMeta,
+        lastEvaluatedDate.isAcceptableOrUnknown(
+          data['last_evaluated_date']!,
+          _lastEvaluatedDateMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_lastEvaluatedDateMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  GamificationStateRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GamificationStateRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      currentXp: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}current_xp'],
+      )!,
+      currentLevel: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}current_level'],
+      )!,
+      currentStreak: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}current_streak'],
+      )!,
+      longestStreak: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}longest_streak'],
+      )!,
+      lastEvaluatedDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_evaluated_date'],
+      )!,
+    );
+  }
+
+  @override
+  $GamificationStatesTable createAlias(String alias) {
+    return $GamificationStatesTable(attachedDatabase, alias);
+  }
+}
+
+class GamificationStateRow extends DataClass
+    implements Insertable<GamificationStateRow> {
+  final int id;
+  final int currentXp;
+  final int currentLevel;
+  final int currentStreak;
+  final int longestStreak;
+  final DateTime lastEvaluatedDate;
+  const GamificationStateRow({
+    required this.id,
+    required this.currentXp,
+    required this.currentLevel,
+    required this.currentStreak,
+    required this.longestStreak,
+    required this.lastEvaluatedDate,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['current_xp'] = Variable<int>(currentXp);
+    map['current_level'] = Variable<int>(currentLevel);
+    map['current_streak'] = Variable<int>(currentStreak);
+    map['longest_streak'] = Variable<int>(longestStreak);
+    map['last_evaluated_date'] = Variable<DateTime>(lastEvaluatedDate);
+    return map;
+  }
+
+  GamificationStatesCompanion toCompanion(bool nullToAbsent) {
+    return GamificationStatesCompanion(
+      id: Value(id),
+      currentXp: Value(currentXp),
+      currentLevel: Value(currentLevel),
+      currentStreak: Value(currentStreak),
+      longestStreak: Value(longestStreak),
+      lastEvaluatedDate: Value(lastEvaluatedDate),
+    );
+  }
+
+  factory GamificationStateRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GamificationStateRow(
+      id: serializer.fromJson<int>(json['id']),
+      currentXp: serializer.fromJson<int>(json['currentXp']),
+      currentLevel: serializer.fromJson<int>(json['currentLevel']),
+      currentStreak: serializer.fromJson<int>(json['currentStreak']),
+      longestStreak: serializer.fromJson<int>(json['longestStreak']),
+      lastEvaluatedDate: serializer.fromJson<DateTime>(
+        json['lastEvaluatedDate'],
+      ),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'currentXp': serializer.toJson<int>(currentXp),
+      'currentLevel': serializer.toJson<int>(currentLevel),
+      'currentStreak': serializer.toJson<int>(currentStreak),
+      'longestStreak': serializer.toJson<int>(longestStreak),
+      'lastEvaluatedDate': serializer.toJson<DateTime>(lastEvaluatedDate),
+    };
+  }
+
+  GamificationStateRow copyWith({
+    int? id,
+    int? currentXp,
+    int? currentLevel,
+    int? currentStreak,
+    int? longestStreak,
+    DateTime? lastEvaluatedDate,
+  }) => GamificationStateRow(
+    id: id ?? this.id,
+    currentXp: currentXp ?? this.currentXp,
+    currentLevel: currentLevel ?? this.currentLevel,
+    currentStreak: currentStreak ?? this.currentStreak,
+    longestStreak: longestStreak ?? this.longestStreak,
+    lastEvaluatedDate: lastEvaluatedDate ?? this.lastEvaluatedDate,
+  );
+  GamificationStateRow copyWithCompanion(GamificationStatesCompanion data) {
+    return GamificationStateRow(
+      id: data.id.present ? data.id.value : this.id,
+      currentXp: data.currentXp.present ? data.currentXp.value : this.currentXp,
+      currentLevel: data.currentLevel.present
+          ? data.currentLevel.value
+          : this.currentLevel,
+      currentStreak: data.currentStreak.present
+          ? data.currentStreak.value
+          : this.currentStreak,
+      longestStreak: data.longestStreak.present
+          ? data.longestStreak.value
+          : this.longestStreak,
+      lastEvaluatedDate: data.lastEvaluatedDate.present
+          ? data.lastEvaluatedDate.value
+          : this.lastEvaluatedDate,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GamificationStateRow(')
+          ..write('id: $id, ')
+          ..write('currentXp: $currentXp, ')
+          ..write('currentLevel: $currentLevel, ')
+          ..write('currentStreak: $currentStreak, ')
+          ..write('longestStreak: $longestStreak, ')
+          ..write('lastEvaluatedDate: $lastEvaluatedDate')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    currentXp,
+    currentLevel,
+    currentStreak,
+    longestStreak,
+    lastEvaluatedDate,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GamificationStateRow &&
+          other.id == this.id &&
+          other.currentXp == this.currentXp &&
+          other.currentLevel == this.currentLevel &&
+          other.currentStreak == this.currentStreak &&
+          other.longestStreak == this.longestStreak &&
+          other.lastEvaluatedDate == this.lastEvaluatedDate);
+}
+
+class GamificationStatesCompanion
+    extends UpdateCompanion<GamificationStateRow> {
+  final Value<int> id;
+  final Value<int> currentXp;
+  final Value<int> currentLevel;
+  final Value<int> currentStreak;
+  final Value<int> longestStreak;
+  final Value<DateTime> lastEvaluatedDate;
+  const GamificationStatesCompanion({
+    this.id = const Value.absent(),
+    this.currentXp = const Value.absent(),
+    this.currentLevel = const Value.absent(),
+    this.currentStreak = const Value.absent(),
+    this.longestStreak = const Value.absent(),
+    this.lastEvaluatedDate = const Value.absent(),
+  });
+  GamificationStatesCompanion.insert({
+    this.id = const Value.absent(),
+    this.currentXp = const Value.absent(),
+    this.currentLevel = const Value.absent(),
+    this.currentStreak = const Value.absent(),
+    this.longestStreak = const Value.absent(),
+    required DateTime lastEvaluatedDate,
+  }) : lastEvaluatedDate = Value(lastEvaluatedDate);
+  static Insertable<GamificationStateRow> custom({
+    Expression<int>? id,
+    Expression<int>? currentXp,
+    Expression<int>? currentLevel,
+    Expression<int>? currentStreak,
+    Expression<int>? longestStreak,
+    Expression<DateTime>? lastEvaluatedDate,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (currentXp != null) 'current_xp': currentXp,
+      if (currentLevel != null) 'current_level': currentLevel,
+      if (currentStreak != null) 'current_streak': currentStreak,
+      if (longestStreak != null) 'longest_streak': longestStreak,
+      if (lastEvaluatedDate != null) 'last_evaluated_date': lastEvaluatedDate,
+    });
+  }
+
+  GamificationStatesCompanion copyWith({
+    Value<int>? id,
+    Value<int>? currentXp,
+    Value<int>? currentLevel,
+    Value<int>? currentStreak,
+    Value<int>? longestStreak,
+    Value<DateTime>? lastEvaluatedDate,
+  }) {
+    return GamificationStatesCompanion(
+      id: id ?? this.id,
+      currentXp: currentXp ?? this.currentXp,
+      currentLevel: currentLevel ?? this.currentLevel,
+      currentStreak: currentStreak ?? this.currentStreak,
+      longestStreak: longestStreak ?? this.longestStreak,
+      lastEvaluatedDate: lastEvaluatedDate ?? this.lastEvaluatedDate,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (currentXp.present) {
+      map['current_xp'] = Variable<int>(currentXp.value);
+    }
+    if (currentLevel.present) {
+      map['current_level'] = Variable<int>(currentLevel.value);
+    }
+    if (currentStreak.present) {
+      map['current_streak'] = Variable<int>(currentStreak.value);
+    }
+    if (longestStreak.present) {
+      map['longest_streak'] = Variable<int>(longestStreak.value);
+    }
+    if (lastEvaluatedDate.present) {
+      map['last_evaluated_date'] = Variable<DateTime>(lastEvaluatedDate.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GamificationStatesCompanion(')
+          ..write('id: $id, ')
+          ..write('currentXp: $currentXp, ')
+          ..write('currentLevel: $currentLevel, ')
+          ..write('currentStreak: $currentStreak, ')
+          ..write('longestStreak: $longestStreak, ')
+          ..write('lastEvaluatedDate: $lastEvaluatedDate')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $BadgesTable extends Badges with TableInfo<$BadgesTable, BadgeRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BadgesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _codeMeta = const VerificationMeta('code');
+  @override
+  late final GeneratedColumn<String> code = GeneratedColumn<String>(
+    'code',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _unlockedAtMeta = const VerificationMeta(
+    'unlockedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> unlockedAt = GeneratedColumn<DateTime>(
+    'unlocked_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, code, unlockedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'badges';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<BadgeRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('code')) {
+      context.handle(
+        _codeMeta,
+        code.isAcceptableOrUnknown(data['code']!, _codeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_codeMeta);
+    }
+    if (data.containsKey('unlocked_at')) {
+      context.handle(
+        _unlockedAtMeta,
+        unlockedAt.isAcceptableOrUnknown(data['unlocked_at']!, _unlockedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_unlockedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  BadgeRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BadgeRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      code: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}code'],
+      )!,
+      unlockedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}unlocked_at'],
+      )!,
+    );
+  }
+
+  @override
+  $BadgesTable createAlias(String alias) {
+    return $BadgesTable(attachedDatabase, alias);
+  }
+}
+
+class BadgeRow extends DataClass implements Insertable<BadgeRow> {
+  final int id;
+  final String code;
+  final DateTime unlockedAt;
+  const BadgeRow({
+    required this.id,
+    required this.code,
+    required this.unlockedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['code'] = Variable<String>(code);
+    map['unlocked_at'] = Variable<DateTime>(unlockedAt);
+    return map;
+  }
+
+  BadgesCompanion toCompanion(bool nullToAbsent) {
+    return BadgesCompanion(
+      id: Value(id),
+      code: Value(code),
+      unlockedAt: Value(unlockedAt),
+    );
+  }
+
+  factory BadgeRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BadgeRow(
+      id: serializer.fromJson<int>(json['id']),
+      code: serializer.fromJson<String>(json['code']),
+      unlockedAt: serializer.fromJson<DateTime>(json['unlockedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'code': serializer.toJson<String>(code),
+      'unlockedAt': serializer.toJson<DateTime>(unlockedAt),
+    };
+  }
+
+  BadgeRow copyWith({int? id, String? code, DateTime? unlockedAt}) => BadgeRow(
+    id: id ?? this.id,
+    code: code ?? this.code,
+    unlockedAt: unlockedAt ?? this.unlockedAt,
+  );
+  BadgeRow copyWithCompanion(BadgesCompanion data) {
+    return BadgeRow(
+      id: data.id.present ? data.id.value : this.id,
+      code: data.code.present ? data.code.value : this.code,
+      unlockedAt: data.unlockedAt.present
+          ? data.unlockedAt.value
+          : this.unlockedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BadgeRow(')
+          ..write('id: $id, ')
+          ..write('code: $code, ')
+          ..write('unlockedAt: $unlockedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, code, unlockedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BadgeRow &&
+          other.id == this.id &&
+          other.code == this.code &&
+          other.unlockedAt == this.unlockedAt);
+}
+
+class BadgesCompanion extends UpdateCompanion<BadgeRow> {
+  final Value<int> id;
+  final Value<String> code;
+  final Value<DateTime> unlockedAt;
+  const BadgesCompanion({
+    this.id = const Value.absent(),
+    this.code = const Value.absent(),
+    this.unlockedAt = const Value.absent(),
+  });
+  BadgesCompanion.insert({
+    this.id = const Value.absent(),
+    required String code,
+    required DateTime unlockedAt,
+  }) : code = Value(code),
+       unlockedAt = Value(unlockedAt);
+  static Insertable<BadgeRow> custom({
+    Expression<int>? id,
+    Expression<String>? code,
+    Expression<DateTime>? unlockedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (code != null) 'code': code,
+      if (unlockedAt != null) 'unlocked_at': unlockedAt,
+    });
+  }
+
+  BadgesCompanion copyWith({
+    Value<int>? id,
+    Value<String>? code,
+    Value<DateTime>? unlockedAt,
+  }) {
+    return BadgesCompanion(
+      id: id ?? this.id,
+      code: code ?? this.code,
+      unlockedAt: unlockedAt ?? this.unlockedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (code.present) {
+      map['code'] = Variable<String>(code.value);
+    }
+    if (unlockedAt.present) {
+      map['unlocked_at'] = Variable<DateTime>(unlockedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BadgesCompanion(')
+          ..write('id: $id, ')
+          ..write('code: $code, ')
+          ..write('unlockedAt: $unlockedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1291,6 +1961,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $HealthSnapshotsTable healthSnapshots = $HealthSnapshotsTable(
     this,
   );
+  late final $GamificationStatesTable gamificationStates =
+      $GamificationStatesTable(this);
+  late final $BadgesTable badges = $BadgesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1299,6 +1972,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     routines,
     routineCompletions,
     healthSnapshots,
+    gamificationStates,
+    badges,
   ];
 }
 
@@ -2208,6 +2883,385 @@ typedef $$HealthSnapshotsTableProcessedTableManager =
       HealthSnapshotRow,
       PrefetchHooks Function()
     >;
+typedef $$GamificationStatesTableCreateCompanionBuilder =
+    GamificationStatesCompanion Function({
+      Value<int> id,
+      Value<int> currentXp,
+      Value<int> currentLevel,
+      Value<int> currentStreak,
+      Value<int> longestStreak,
+      required DateTime lastEvaluatedDate,
+    });
+typedef $$GamificationStatesTableUpdateCompanionBuilder =
+    GamificationStatesCompanion Function({
+      Value<int> id,
+      Value<int> currentXp,
+      Value<int> currentLevel,
+      Value<int> currentStreak,
+      Value<int> longestStreak,
+      Value<DateTime> lastEvaluatedDate,
+    });
+
+class $$GamificationStatesTableFilterComposer
+    extends Composer<_$AppDatabase, $GamificationStatesTable> {
+  $$GamificationStatesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get currentXp => $composableBuilder(
+    column: $table.currentXp,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get currentLevel => $composableBuilder(
+    column: $table.currentLevel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get currentStreak => $composableBuilder(
+    column: $table.currentStreak,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get longestStreak => $composableBuilder(
+    column: $table.longestStreak,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastEvaluatedDate => $composableBuilder(
+    column: $table.lastEvaluatedDate,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$GamificationStatesTableOrderingComposer
+    extends Composer<_$AppDatabase, $GamificationStatesTable> {
+  $$GamificationStatesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get currentXp => $composableBuilder(
+    column: $table.currentXp,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get currentLevel => $composableBuilder(
+    column: $table.currentLevel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get currentStreak => $composableBuilder(
+    column: $table.currentStreak,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get longestStreak => $composableBuilder(
+    column: $table.longestStreak,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastEvaluatedDate => $composableBuilder(
+    column: $table.lastEvaluatedDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$GamificationStatesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $GamificationStatesTable> {
+  $$GamificationStatesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get currentXp =>
+      $composableBuilder(column: $table.currentXp, builder: (column) => column);
+
+  GeneratedColumn<int> get currentLevel => $composableBuilder(
+    column: $table.currentLevel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get currentStreak => $composableBuilder(
+    column: $table.currentStreak,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get longestStreak => $composableBuilder(
+    column: $table.longestStreak,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get lastEvaluatedDate => $composableBuilder(
+    column: $table.lastEvaluatedDate,
+    builder: (column) => column,
+  );
+}
+
+class $$GamificationStatesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $GamificationStatesTable,
+          GamificationStateRow,
+          $$GamificationStatesTableFilterComposer,
+          $$GamificationStatesTableOrderingComposer,
+          $$GamificationStatesTableAnnotationComposer,
+          $$GamificationStatesTableCreateCompanionBuilder,
+          $$GamificationStatesTableUpdateCompanionBuilder,
+          (
+            GamificationStateRow,
+            BaseReferences<
+              _$AppDatabase,
+              $GamificationStatesTable,
+              GamificationStateRow
+            >,
+          ),
+          GamificationStateRow,
+          PrefetchHooks Function()
+        > {
+  $$GamificationStatesTableTableManager(
+    _$AppDatabase db,
+    $GamificationStatesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GamificationStatesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GamificationStatesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GamificationStatesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> currentXp = const Value.absent(),
+                Value<int> currentLevel = const Value.absent(),
+                Value<int> currentStreak = const Value.absent(),
+                Value<int> longestStreak = const Value.absent(),
+                Value<DateTime> lastEvaluatedDate = const Value.absent(),
+              }) => GamificationStatesCompanion(
+                id: id,
+                currentXp: currentXp,
+                currentLevel: currentLevel,
+                currentStreak: currentStreak,
+                longestStreak: longestStreak,
+                lastEvaluatedDate: lastEvaluatedDate,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> currentXp = const Value.absent(),
+                Value<int> currentLevel = const Value.absent(),
+                Value<int> currentStreak = const Value.absent(),
+                Value<int> longestStreak = const Value.absent(),
+                required DateTime lastEvaluatedDate,
+              }) => GamificationStatesCompanion.insert(
+                id: id,
+                currentXp: currentXp,
+                currentLevel: currentLevel,
+                currentStreak: currentStreak,
+                longestStreak: longestStreak,
+                lastEvaluatedDate: lastEvaluatedDate,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$GamificationStatesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $GamificationStatesTable,
+      GamificationStateRow,
+      $$GamificationStatesTableFilterComposer,
+      $$GamificationStatesTableOrderingComposer,
+      $$GamificationStatesTableAnnotationComposer,
+      $$GamificationStatesTableCreateCompanionBuilder,
+      $$GamificationStatesTableUpdateCompanionBuilder,
+      (
+        GamificationStateRow,
+        BaseReferences<
+          _$AppDatabase,
+          $GamificationStatesTable,
+          GamificationStateRow
+        >,
+      ),
+      GamificationStateRow,
+      PrefetchHooks Function()
+    >;
+typedef $$BadgesTableCreateCompanionBuilder = BadgesCompanion Function({
+  Value<int> id,
+  required String code,
+  required DateTime unlockedAt,
+});
+typedef $$BadgesTableUpdateCompanionBuilder = BadgesCompanion Function({
+  Value<int> id,
+  Value<String> code,
+  Value<DateTime> unlockedAt,
+});
+
+class $$BadgesTableFilterComposer
+    extends Composer<_$AppDatabase, $BadgesTable> {
+  $$BadgesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get code => $composableBuilder(
+    column: $table.code,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get unlockedAt => $composableBuilder(
+    column: $table.unlockedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$BadgesTableOrderingComposer
+    extends Composer<_$AppDatabase, $BadgesTable> {
+  $$BadgesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get code => $composableBuilder(
+    column: $table.code,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get unlockedAt => $composableBuilder(
+    column: $table.unlockedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$BadgesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $BadgesTable> {
+  $$BadgesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get code =>
+      $composableBuilder(column: $table.code, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get unlockedAt => $composableBuilder(
+    column: $table.unlockedAt,
+    builder: (column) => column,
+  );
+}
+
+class $$BadgesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $BadgesTable,
+          BadgeRow,
+          $$BadgesTableFilterComposer,
+          $$BadgesTableOrderingComposer,
+          $$BadgesTableAnnotationComposer,
+          $$BadgesTableCreateCompanionBuilder,
+          $$BadgesTableUpdateCompanionBuilder,
+          (BadgeRow, BaseReferences<_$AppDatabase, $BadgesTable, BadgeRow>),
+          BadgeRow,
+          PrefetchHooks Function()
+        > {
+  $$BadgesTableTableManager(_$AppDatabase db, $BadgesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$BadgesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$BadgesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$BadgesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> code = const Value.absent(),
+            Value<DateTime> unlockedAt = const Value.absent(),
+          }) => BadgesCompanion(id: id, code: code, unlockedAt: unlockedAt),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String code,
+                required DateTime unlockedAt,
+              }) => BadgesCompanion.insert(
+                id: id,
+                code: code,
+                unlockedAt: unlockedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$BadgesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $BadgesTable,
+      BadgeRow,
+      $$BadgesTableFilterComposer,
+      $$BadgesTableOrderingComposer,
+      $$BadgesTableAnnotationComposer,
+      $$BadgesTableCreateCompanionBuilder,
+      $$BadgesTableUpdateCompanionBuilder,
+      (BadgeRow, BaseReferences<_$AppDatabase, $BadgesTable, BadgeRow>),
+      BadgeRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2218,4 +3272,8 @@ class $AppDatabaseManager {
       $$RoutineCompletionsTableTableManager(_db, _db.routineCompletions);
   $$HealthSnapshotsTableTableManager get healthSnapshots =>
       $$HealthSnapshotsTableTableManager(_db, _db.healthSnapshots);
+  $$GamificationStatesTableTableManager get gamificationStates =>
+      $$GamificationStatesTableTableManager(_db, _db.gamificationStates);
+  $$BadgesTableTableManager get badges =>
+      $$BadgesTableTableManager(_db, _db.badges);
 }

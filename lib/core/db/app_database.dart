@@ -6,12 +6,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+import '../../features/routines/data/routines_table.dart';
+import '../../features/routines/domain/routine_recurrence.dart';
+import '../../features/routines/domain/routine_trigger.dart';
+
 part 'app_database.g.dart';
 
-// Empty table list for now — the first tables land with the routines feature
-// in Phase 2 (see claude/data-model.md). This proves the Drift wiring
-// (connection, migration scaffolding) end-to-end before there's real schema.
-@DriftDatabase(tables: [])
+@DriftDatabase(tables: [Routines, RoutineCompletions])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 

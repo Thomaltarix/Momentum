@@ -10,8 +10,8 @@ class MomentumApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'Momentum',
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
+      theme: AppTheme.dark(),
+      themeMode: ThemeMode.dark,
       routerConfig: appRouter,
     );
   }

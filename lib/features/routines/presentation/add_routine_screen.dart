@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/notifications/notification_service.dart';
+import '../../../core/theme/app_colors.dart';
 import '../domain/routine_recurrence.dart';
 import 'routines_providers.dart';
 
@@ -19,13 +20,13 @@ class _AddRoutineScreenState extends ConsumerState<AddRoutineScreen> {
   final Set<int> _customDays = {};
 
   static const _dayLabels = {
-    DateTime.monday: 'Lun',
-    DateTime.tuesday: 'Mar',
-    DateTime.wednesday: 'Mer',
-    DateTime.thursday: 'Jeu',
-    DateTime.friday: 'Ven',
-    DateTime.saturday: 'Sam',
-    DateTime.sunday: 'Dim',
+    DateTime.monday: 'L',
+    DateTime.tuesday: 'M',
+    DateTime.wednesday: 'M',
+    DateTime.thursday: 'J',
+    DateTime.friday: 'V',
+    DateTime.saturday: 'S',
+    DateTime.sunday: 'D',
   };
 
   @override
@@ -77,41 +78,81 @@ class _AddRoutineScreenState extends ConsumerState<AddRoutineScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Nouvelle routine')),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         children: [
-          Text(
+          const Text(
             'Momentum te notifiera à l\'heure choisie pour cette routine.',
-            style: Theme.of(context).textTheme.bodySmall,
+            style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
+          const Text(
+            'Titre',
+            style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: 6),
           TextField(
             controller: _titleController,
-            decoration: const InputDecoration(labelText: 'Titre'),
+            style: const TextStyle(color: AppColors.textPrimary),
+            decoration: const InputDecoration(hintText: 'ex : Méditation'),
             onChanged: (_) => setState(() {}),
           ),
-          const SizedBox(height: 24),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Heure'),
-            trailing: Text(_time.format(context)),
-            onTap: _pickTime,
+          const SizedBox(height: 20),
+          Material(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: _pickTime,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                child: Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'Heure',
+                        style: TextStyle(color: AppColors.textPrimary),
+                      ),
+                    ),
+                    Text(
+                      _time.format(context),
+                      style: const TextStyle(
+                        color: AppColors.accent,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(
+                      Icons.chevron_right,
+                      color: AppColors.textSecondary,
+                      size: 20,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
           const SizedBox(height: 24),
-          const Text('Récurrence'),
+          const Text(
+            'Récurrence',
+            style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+          ),
           const SizedBox(height: 8),
           SegmentedButton<RoutineRecurrence>(
             segments: const [
               ButtonSegment(
                 value: RoutineRecurrence.daily,
-                label: Text('Tous les jours'),
+                label: FittedBox(child: Text('Tous les jours')),
               ),
               ButtonSegment(
                 value: RoutineRecurrence.weekdays,
-                label: Text('Semaine'),
+                label: FittedBox(child: Text('Semaine')),
               ),
               ButtonSegment(
                 value: RoutineRecurrence.custom,
-                label: Text('Personnalisé'),
+                label: FittedBox(child: Text('Personnalisé')),
               ),
             ],
             selected: {_recurrence},
@@ -119,19 +160,24 @@ class _AddRoutineScreenState extends ConsumerState<AddRoutineScreen> {
                 setState(() => _recurrence = selection.first),
           ),
           if (_recurrence == RoutineRecurrence.custom) ...[
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
+            const SizedBox(height: 20),
+            const Text(
+              'Jours spécifiques',
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: _dayLabels.entries.map((entry) {
                 final selected = _customDays.contains(entry.key);
-                return FilterChip(
-                  label: Text(entry.value),
+                return _DayChip(
+                  label: entry.value,
                   selected: selected,
-                  onSelected: (value) => setState(() {
-                    if (value) {
-                      _customDays.add(entry.key);
-                    } else {
+                  onTap: () => setState(() {
+                    if (selected) {
                       _customDays.remove(entry.key);
+                    } else {
+                      _customDays.add(entry.key);
                     }
                   }),
                 );
@@ -144,6 +190,42 @@ class _AddRoutineScreenState extends ConsumerState<AddRoutineScreen> {
             child: const Text('Enregistrer'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _DayChip extends StatelessWidget {
+  const _DayChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      customBorder: const CircleBorder(),
+      onTap: onTap,
+      child: Container(
+        width: 36,
+        height: 36,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: selected ? AppColors.accent : AppColors.surface,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: selected ? AppColors.accentOn : AppColors.textSecondary,
+          ),
+        ),
       ),
     );
   }

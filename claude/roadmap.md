@@ -50,13 +50,24 @@ Branch: `feat/health-sync`. Verified on-device: the Health Connect permission sc
 
 Branch: `feat/gamification`. Verified on-device, and it caught a real bug: reinstalling over an existing install (`adb install -r`, not a fresh `pm clear`) crashed with `SqliteException: no such table: gamification_states` — `AppDatabase.schemaVersion` had never been bumped past `1` despite three phases of tables being added, so Drift saw a matching version number and skipped creating anything new on an existing database. Fixed with a real `MigrationStrategy` (`onCreate: createAll`, `onUpgrade` from `<2` creates `GamificationStates`/`Badges`) and `schemaVersion` bumped to `2`, per the "never edit a past migration, add a new step" policy in `data-model.md`. Confirmed the migration runs cleanly against the phone's existing database (Health Connect data and permissions survived the upgrade) before this was called done.
 
-## Phase 5 — Onboarding and polish
+## Phase 5 — Design system and health detail screens (done)
+
+The visual design pass mentioned as "no direction decided yet" below turned out to have a direction: explored first as a from-scratch Figma mockup (design tokens + `RoutineRow`/`BadgeCard` components, blocked partway through by the Figma team plan's MCP tool-call limit), then re-generated end-to-end with Stitch (Google) once Figma was unavailable, which produced a cohesive dark/amber system across Accueil/Badges/Nouvelle routine plus four screens that hadn't existed yet: Pas, Séances, Nutrition, Statut. This phase ports that direction into the real app and builds those four screens for real, done autonomously mid-session per the owner's "continue the features, redo the current pages at the front level" instruction.
+
+- **Design system**: `AppColors`/`AppTheme` rebuilt around the explored palette (near-black background, surface cards, one amber accent `#F5A524` for action/motivation, emerald `#34D399` reserved strictly for "goal met" — never decorative), Inter via `google_fonts`, dark-only (`themeMode: ThemeMode.dark` — a light theme nobody designed would just be guessing). Every existing screen restyled to match: custom routine tiles (circular checkbox, dimmed title when done) replacing `CheckboxListTile`, a steps progress ring (`CustomPainter`, not an image) on the summary card, flame-icon streak badge, icon-circle badge cards, filled rounded inputs and circular day chips on the add-routine form.
+- **Steps/Séances/Nutrition detail screens**: each of the three stats on the home summary card now taps through to a history view — a 7-day bar chart + daily list for steps (`fl_chart`), a grouped chronological list of past workouts, and a macro breakdown + daily calorie history for nutrition. All three query Health Connect directly for the requested range rather than the local "today" cache in `health_snapshots` — past days' data already exists in Health Connect (recorded by the phone sensor / Lyfta / MyFitnessPal) whether or not Momentum was open to cache it.
+- **Statut (weight)**: the piece of the original ask (wake → weigh-in → workout) that hadn't been wired yet. Adds `READ_WEIGHT` + `HealthDataType.WEIGHT`, a weigh-in history (one entry per day, latest reading wins), and a screen with current weight, a trend delta (green only trending down, neutral otherwise — deliberately not alarming either direction), and a 30-day line chart. Reachable from a new icon next to Badges in the home `AppBar`.
+
+Branches: `feat/design-system`, `feat/health-history`, `feat/weight-tracking` (stacked in that order). `flutter analyze` clean and all tests passing after each; debug APK builds successfully.
+
+Verified on-device (Nothing Phone) once the phone became available: re-granting Health Connect permissions correctly listed all four categories including "Poids", and every screen showed real data — 7-day step history with correct goal-met checkmarks, an empty-but-honest state for Séances/Nutrition (no source app configured on this phone, shown as "—" rather than a fake zero), and a real weight entry on the Statut screen. One bug found and fixed this pass: the "Personnalisé" recurrence segment wrapped to two lines at that width — labels now wrapped in `FittedBox`. No crashes in logcat across the whole walkthrough.
+
+## Phase 6 — Onboarding and polish
 
 - First-run flow: set step goal, calorie/macro goals, add initial routines from a couple of suggested templates (e.g. "weigh-in after waking", "5000 steps", "morning workout").
 - Settings screen: edit goals, edit/delete routines, notification permission re-request if revoked.
-- Visual design pass — no direction decided yet; revisit once the core flows exist to design around, same lesson learned on the portfolio project (design is easier to get right against real content/screens than in the abstract).
 
-## Phase 6 — Deferred, not started unless requirements change
+## Phase 7 — Deferred, not started unless requirements change
 
 - **iOS support** — architecturally possible (the `health` package abstracts HealthKit the same way), but untested until there's an iOS device available.
 - **Social / leaderboard gamification** — would require a backend (auth, shared state across users). Explicitly out of scope while gamification stays solo.

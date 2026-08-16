@@ -144,15 +144,15 @@ class _AddRoutineScreenState extends ConsumerState<AddRoutineScreen> {
             segments: const [
               ButtonSegment(
                 value: RoutineRecurrence.daily,
-                label: Text('Tous les jours'),
+                label: FittedBox(child: Text('Tous les jours')),
               ),
               ButtonSegment(
                 value: RoutineRecurrence.weekdays,
-                label: Text('Semaine'),
+                label: FittedBox(child: Text('Semaine')),
               ),
               ButtonSegment(
                 value: RoutineRecurrence.custom,
-                label: Text('Personnalisé'),
+                label: FittedBox(child: Text('Personnalisé')),
               ),
             ],
             selected: {_recurrence},

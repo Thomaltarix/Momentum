@@ -4,6 +4,7 @@ import '../../../core/db/app_database.dart';
 import '../domain/daily_nutrition.dart';
 import '../domain/daily_steps.dart';
 import '../domain/health_snapshot.dart';
+import '../domain/weight_entry.dart';
 import '../domain/workout_entry.dart';
 import 'health_connect_client.dart';
 
@@ -45,6 +46,9 @@ class HealthSyncRepository {
 
   Future<List<DailyNutrition>> fetchNutritionHistory(int days) =>
       _client.fetchNutritionHistory(days);
+
+  Future<List<WeightEntry>> fetchWeightHistory(int days) =>
+      _client.fetchWeightHistory(days);
 
   Future<void> refreshToday() async {
     final HealthSnapshot snapshot = await _client.fetchToday();

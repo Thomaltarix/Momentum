@@ -3,6 +3,7 @@ import 'package:health/health.dart';
 import '../domain/daily_nutrition.dart';
 import '../domain/daily_steps.dart';
 import '../domain/health_snapshot.dart';
+import '../domain/weight_entry.dart';
 import '../domain/workout_category.dart';
 import '../domain/workout_entry.dart';
 
@@ -20,6 +21,7 @@ class HealthConnectClient {
     HealthDataType.STEPS,
     HealthDataType.WORKOUT,
     HealthDataType.NUTRITION,
+    HealthDataType.WEIGHT,
   ];
 
   Future<bool> isHealthConnectAvailable() => _health.isHealthConnectAvailable();
@@ -145,6 +147,45 @@ class HealthConnectClient {
       default:
         return (WorkoutCategory.other, 'Séance');
     }
+  }
+
+  /// Most recent first, one entry per day (the latest reading if weighed in
+  /// more than once) — a weigh-in log, not a daily total like steps/nutrition.
+  Future<List<WeightEntry>> fetchWeightHistory(int days) async {
+    final DateTime now = DateTime.now();
+    final DateTime start = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(Duration(days: days - 1));
+
+    final List<HealthDataPoint> points = await _health.getHealthDataFromTypes(
+      types: const [HealthDataType.WEIGHT],
+      startTime: start,
+      endTime: now,
+    );
+
+    final Map<DateTime, WeightEntry> latestByDay = {};
+    for (final HealthDataPoint point in points) {
+      final value = point.value;
+      if (value is! NumericHealthValue) continue;
+      final DateTime day = DateTime(
+        point.dateFrom.year,
+        point.dateFrom.month,
+        point.dateFrom.day,
+      );
+      final WeightEntry entry = WeightEntry(
+        date: point.dateFrom,
+        kilograms: value.numericValue.toDouble(),
+      );
+      final WeightEntry? existing = latestByDay[day];
+      if (existing == null || entry.date.isAfter(existing.date)) {
+        latestByDay[day] = entry;
+      }
+    }
+
+    return latestByDay.values.toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
   }
 
   /// Most recent first. One range query, bucketed by day client-side —

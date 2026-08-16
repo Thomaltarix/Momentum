@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'badges_screen.dart';
+import '../../../core/theme/app_colors.dart';
 import 'gamification_providers.dart';
 
 class GamificationStatusStrip extends ConsumerWidget {
@@ -18,24 +18,22 @@ class GamificationStatusStrip extends ConsumerWidget {
     if (state == null) return const SizedBox.shrink();
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
       child: Row(
         children: [
           Text(
             'Niveau ${state.currentLevel} · ${state.currentXp} XP',
-            style: Theme.of(context).textTheme.bodyMedium,
+            style: const TextStyle(fontSize: 15, color: AppColors.textSecondary),
           ),
           const SizedBox(width: 16),
+          const Icon(Icons.local_fire_department, size: 16, color: AppColors.accent),
+          const SizedBox(width: 4),
           Text(
-            'Série : ${state.currentStreak} j',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const Spacer(),
-          IconButton(
-            icon: const Icon(Icons.emoji_events_outlined),
-            tooltip: 'Badges',
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const BadgesScreen()),
+            '${state.currentStreak} jours',
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: AppColors.accent,
             ),
           ),
         ],

@@ -5,7 +5,10 @@ import '../../../core/theme/app_colors.dart';
 import '../domain/health_snapshot.dart';
 import '../domain/step_goal.dart';
 import 'health_sync_providers.dart';
+import 'nutrition_history_screen.dart';
+import 'steps_history_screen.dart';
 import 'steps_ring.dart';
+import 'workouts_history_screen.dart';
 
 class TodaySummaryCard extends ConsumerStatefulWidget {
   const TodaySummaryCard({super.key});
@@ -158,7 +161,12 @@ class _SummaryRow extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            StepsRing(steps: steps, goal: defaultDailyStepGoal),
+            GestureDetector(
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const StepsHistoryScreen()),
+              ),
+              child: StepsRing(steps: steps, goal: defaultDailyStepGoal),
+            ),
             const SizedBox(width: 24),
             Expanded(
               child: Column(
@@ -168,11 +176,21 @@ class _SummaryRow extends StatelessWidget {
                     label: 'Séance',
                     value: workoutDone ? 'Faite' : '—',
                     showCheck: workoutDone,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const WorkoutsHistoryScreen(),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 14),
                   _StatRow(
                     label: 'Calories',
                     value: calories != null ? '$calories kcal' : '—',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const NutritionHistoryScreen(),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -204,15 +222,21 @@ class _SummaryRow extends StatelessWidget {
 }
 
 class _StatRow extends StatelessWidget {
-  const _StatRow({required this.label, required this.value, this.showCheck = false});
+  const _StatRow({
+    required this.label,
+    required this.value,
+    this.showCheck = false,
+    this.onTap,
+  });
 
   final String label;
   final String value;
   final bool showCheck;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    final row = Row(
       children: [
         Expanded(
           child: Text(
@@ -234,5 +258,8 @@ class _StatRow extends StatelessWidget {
         ),
       ],
     );
+
+    if (onTap == null) return row;
+    return GestureDetector(onTap: onTap, child: row);
   }
 }

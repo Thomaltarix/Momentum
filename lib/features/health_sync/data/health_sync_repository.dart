@@ -1,7 +1,10 @@
 import 'package:drift/drift.dart';
 
 import '../../../core/db/app_database.dart';
+import '../domain/daily_nutrition.dart';
+import '../domain/daily_steps.dart';
 import '../domain/health_snapshot.dart';
+import '../domain/workout_entry.dart';
 import 'health_connect_client.dart';
 
 class HealthSyncRepository {
@@ -33,6 +36,15 @@ class HealthSyncRepository {
 
   Future<bool> isHealthConnectAvailable() =>
       _client.isHealthConnectAvailable();
+
+  Future<List<DailySteps>> fetchStepsHistory(int days) =>
+      _client.fetchStepsHistory(days);
+
+  Future<List<WorkoutEntry>> fetchWorkoutsHistory(int days) =>
+      _client.fetchWorkoutsHistory(days);
+
+  Future<List<DailyNutrition>> fetchNutritionHistory(int days) =>
+      _client.fetchNutritionHistory(days);
 
   Future<void> refreshToday() async {
     final HealthSnapshot snapshot = await _client.fetchToday();

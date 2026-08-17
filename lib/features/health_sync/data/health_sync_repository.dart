@@ -284,9 +284,17 @@ class HealthSyncRepository {
     final DateTime today = _normalizeDate(DateTime.now());
 
     final workoutMode = await fetchWorkoutSourceMode();
-    final int workoutsCompleted = workoutMode == DataSourceMode.manual
-        ? await _countManualWorkoutsOn(today)
+    final bool useManualWorkouts = workoutMode == DataSourceMode.manual;
+    final (int manualWorkoutCount, int? manualCaloriesBurned) =
+        useManualWorkouts
+        ? await _manualWorkoutsSummaryOn(today)
+        : (0, null);
+    final int workoutsCompleted = useManualWorkouts
+        ? manualWorkoutCount
         : base.workoutsCompleted;
+    final int? caloriesBurned = useManualWorkouts
+        ? manualCaloriesBurned
+        : base.caloriesBurned;
 
     final nutritionMode = await fetchNutritionSourceMode();
     final NutritionEntryRow? manualNutrition =
@@ -305,6 +313,7 @@ class HealthSyncRepository {
             syncedAt: base.syncedAt,
             steps: Value(base.steps),
             workoutsCompleted: Value(workoutsCompleted),
+            caloriesBurned: Value(caloriesBurned),
             caloriesConsumed: Value(
               useManualNutrition ? manualNutrition?.calories : base.caloriesConsumed,
             ),
@@ -321,14 +330,21 @@ class HealthSyncRepository {
         );
   }
 
-  Future<int> _countManualWorkoutsOn(DateTime day) async {
+  Future<(int, int?)> _manualWorkoutsSummaryOn(DateTime day) async {
     final DateTime nextDay = day.add(const Duration(days: 1));
     final rows =
         await (_db.select(_db.workoutEntries)..where(
               (t) => t.start.isBiggerOrEqualValue(day) & t.start.isSmallerThanValue(nextDay),
             ))
             .get();
-    return rows.length;
+
+    int? caloriesBurned;
+    for (final row in rows) {
+      if (row.caloriesBurned != null) {
+        caloriesBurned = (caloriesBurned ?? 0) + row.caloriesBurned!;
+      }
+    }
+    return (rows.length, caloriesBurned);
   }
 
   /// Manual workout/nutrition writes affect the home card and gamification
@@ -350,6 +366,7 @@ class HealthSyncRepository {
     workoutsCompleted: row.workoutsCompleted,
     syncedAt: row.syncedAt,
     caloriesConsumed: row.caloriesConsumed,
+    caloriesBurned: row.caloriesBurned,
     proteinGrams: row.proteinGrams,
     carbsGrams: row.carbsGrams,
     fatGrams: row.fatGrams,

@@ -5,6 +5,7 @@ class HealthSnapshot {
     required this.workoutsCompleted,
     required this.syncedAt,
     this.caloriesConsumed,
+    this.caloriesBurned,
     this.proteinGrams,
     this.carbsGrams,
     this.fatGrams,
@@ -15,6 +16,7 @@ class HealthSnapshot {
   final int workoutsCompleted;
   final DateTime syncedAt;
   final int? caloriesConsumed;
+  final int? caloriesBurned;
   final double? proteinGrams;
   final double? carbsGrams;
   final double? fatGrams;

@@ -66,12 +66,21 @@ class HealthConnectClient {
       }
     }
 
+    double? caloriesBurned;
+    for (final HealthDataPoint point in workoutPoints) {
+      final value = point.value;
+      if (value is WorkoutHealthValue && value.totalEnergyBurned != null) {
+        caloriesBurned = (caloriesBurned ?? 0) + value.totalEnergyBurned!;
+      }
+    }
+
     return HealthSnapshot(
       date: midnight,
       steps: steps,
       workoutsCompleted: workoutPoints.length,
       syncedAt: now,
       caloriesConsumed: calories?.round(),
+      caloriesBurned: caloriesBurned?.round(),
       proteinGrams: protein,
       carbsGrams: carbs,
       fatGrams: fat,

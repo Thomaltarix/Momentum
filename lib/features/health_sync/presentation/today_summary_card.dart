@@ -5,6 +5,7 @@ import '../../../core/theme/app_colors.dart';
 import '../domain/health_snapshot.dart';
 import '../domain/step_goal.dart';
 import 'health_sync_providers.dart';
+import 'macro_bar.dart';
 import 'nutrition_history_screen.dart';
 import 'steps_history_screen.dart';
 import 'steps_ring.dart';
@@ -147,41 +148,80 @@ class _SummaryRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final int steps = snapshot?.steps ?? 0;
     final bool workoutDone = (snapshot?.workoutsCompleted ?? 0) > 0;
-    final int? calories = snapshot?.caloriesConsumed;
+    final int? caloriesBurned = snapshot?.caloriesBurned;
+    final int? caloriesConsumed = snapshot?.caloriesConsumed;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+    void openWorkouts() => Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const WorkoutsHistoryScreen()),
+    );
+    void openNutrition() => Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const NutritionHistoryScreen()),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        GestureDetector(
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const StepsHistoryScreen()),
-          ),
-          child: StepsRing(steps: steps, goal: defaultDailyStepGoal),
-        ),
-        const SizedBox(width: 24),
-        Expanded(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _StatRow(
-                label: 'Séance',
-                value: workoutDone ? 'Faite' : '—',
-                showCheck: workoutDone,
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const WorkoutsHistoryScreen(),
-                  ),
-                ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const StepsHistoryScreen()),
               ),
-              const SizedBox(height: 14),
-              _StatRow(
-                label: 'Calories',
-                value: calories != null ? '$calories kcal' : '—',
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const NutritionHistoryScreen(),
+              child: StepsRing(steps: steps, goal: defaultDailyStepGoal),
+            ),
+            const SizedBox(width: 24),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _StatRow(
+                    label: 'Séance',
+                    value: workoutDone ? 'Faite' : '—',
+                    showCheck: workoutDone,
+                    onTap: openWorkouts,
                   ),
-                ),
+                  const SizedBox(height: 14),
+                  _StatRow(
+                    label: 'Dépensées',
+                    value: caloriesBurned != null ? '$caloriesBurned kcal' : '—',
+                    onTap: openWorkouts,
+                  ),
+                  const SizedBox(height: 14),
+                  _StatRow(
+                    label: 'Consommées',
+                    value: caloriesConsumed != null ? '$caloriesConsumed kcal' : '—',
+                    onTap: openNutrition,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 20),
+        const Divider(height: 1),
+        const SizedBox(height: 20),
+        GestureDetector(
+          onTap: openNutrition,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              MacroBar(
+                label: 'Protéines',
+                grams: snapshot?.proteinGrams,
+                maxGrams: 200,
+              ),
+              const SizedBox(height: 12),
+              MacroBar(
+                label: 'Glucides',
+                grams: snapshot?.carbsGrams,
+                maxGrams: 300,
+              ),
+              const SizedBox(height: 12),
+              MacroBar(
+                label: 'Lipides',
+                grams: snapshot?.fatGrams,
+                maxGrams: 100,
               ),
             ],
           ),

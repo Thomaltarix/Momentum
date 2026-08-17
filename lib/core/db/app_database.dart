@@ -36,10 +36,12 @@ class AppDatabase extends _$AppDatabase {
   // v1: Routines, RoutineCompletions, HealthSnapshots (Phases 2-3).
   // v2: + GamificationStates, Badges (Phase 4).
   // v3: + DataSourceSettings, WeightEntries, NutritionEntries, WorkoutEntries
-  // (manual data entry, Phase 7 brought forward). Never edit a past
-  // migration step — add a new one instead, per claude/data-model.md.
+  // (manual data entry, Phase 7 brought forward).
+  // v4: + HealthSnapshots.caloriesBurned (calories spent via workouts,
+  // shown on the home summary card). Never edit a past migration step —
+  // add a new one instead, per claude/data-model.md.
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -54,6 +56,9 @@ class AppDatabase extends _$AppDatabase {
         await m.createTable(weightEntries);
         await m.createTable(nutritionEntries);
         await m.createTable(workoutEntries);
+      }
+      if (from < 4) {
+        await m.addColumn(healthSnapshots, healthSnapshots.caloriesBurned);
       }
     },
   );

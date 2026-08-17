@@ -7,6 +7,7 @@ import '../domain/data_source_mode.dart';
 import 'add_nutrition_entry_screen.dart';
 import 'data_source_toggle.dart';
 import 'health_sync_providers.dart';
+import 'macro_bar.dart';
 
 class NutritionHistoryScreen extends ConsumerStatefulWidget {
   const NutritionHistoryScreen({super.key});
@@ -134,19 +135,19 @@ class _NutritionHistoryScreenState
                             ),
                           ),
                           const SizedBox(height: 16),
-                          _MacroBar(
+                          MacroBar(
                             label: 'Protéines',
                             grams: today.proteinGrams,
                             maxGrams: 200,
                           ),
                           const SizedBox(height: 12),
-                          _MacroBar(
+                          MacroBar(
                             label: 'Glucides',
                             grams: today.carbsGrams,
                             maxGrams: 300,
                           ),
                           const SizedBox(height: 12),
-                          _MacroBar(
+                          MacroBar(
                             label: 'Lipides',
                             grams: today.fatGrams,
                             maxGrams: 100,
@@ -208,54 +209,6 @@ class _NutritionHistoryScreenState
                 );
               },
             ),
-    );
-  }
-}
-
-class _MacroBar extends StatelessWidget {
-  const _MacroBar({required this.label, required this.grams, required this.maxGrams});
-
-  final String label;
-  final double? grams;
-  final double maxGrams;
-
-  @override
-  Widget build(BuildContext context) {
-    final double fraction = grams == null
-        ? 0.0
-        : (grams! / maxGrams).clamp(0.0, 1.0);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-            ),
-            Text(
-              grams != null ? '${grams!.round()}g' : '—',
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: LinearProgressIndicator(
-            value: fraction,
-            minHeight: 6,
-            backgroundColor: AppColors.border,
-            valueColor: const AlwaysStoppedAnimation(AppColors.accent),
-          ),
-        ),
-      ],
     );
   }
 }

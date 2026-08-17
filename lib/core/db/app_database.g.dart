@@ -808,6 +808,17 @@ class $HealthSnapshotsTable extends HealthSnapshots
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _caloriesBurnedMeta = const VerificationMeta(
+    'caloriesBurned',
+  );
+  @override
+  late final GeneratedColumn<int> caloriesBurned = GeneratedColumn<int>(
+    'calories_burned',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _proteinGramsMeta = const VerificationMeta(
     'proteinGrams',
   );
@@ -848,6 +859,7 @@ class $HealthSnapshotsTable extends HealthSnapshots
     workoutsCompleted,
     syncedAt,
     caloriesConsumed,
+    caloriesBurned,
     proteinGrams,
     carbsGrams,
     fatGrams,
@@ -904,6 +916,15 @@ class $HealthSnapshotsTable extends HealthSnapshots
         ),
       );
     }
+    if (data.containsKey('calories_burned')) {
+      context.handle(
+        _caloriesBurnedMeta,
+        caloriesBurned.isAcceptableOrUnknown(
+          data['calories_burned']!,
+          _caloriesBurnedMeta,
+        ),
+      );
+    }
     if (data.containsKey('protein_grams')) {
       context.handle(
         _proteinGramsMeta,
@@ -954,6 +975,10 @@ class $HealthSnapshotsTable extends HealthSnapshots
         DriftSqlType.int,
         data['${effectivePrefix}calories_consumed'],
       ),
+      caloriesBurned: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}calories_burned'],
+      ),
       proteinGrams: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}protein_grams'],
@@ -982,6 +1007,7 @@ class HealthSnapshotRow extends DataClass
   final int workoutsCompleted;
   final DateTime syncedAt;
   final int? caloriesConsumed;
+  final int? caloriesBurned;
   final double? proteinGrams;
   final double? carbsGrams;
   final double? fatGrams;
@@ -991,6 +1017,7 @@ class HealthSnapshotRow extends DataClass
     required this.workoutsCompleted,
     required this.syncedAt,
     this.caloriesConsumed,
+    this.caloriesBurned,
     this.proteinGrams,
     this.carbsGrams,
     this.fatGrams,
@@ -1004,6 +1031,9 @@ class HealthSnapshotRow extends DataClass
     map['synced_at'] = Variable<DateTime>(syncedAt);
     if (!nullToAbsent || caloriesConsumed != null) {
       map['calories_consumed'] = Variable<int>(caloriesConsumed);
+    }
+    if (!nullToAbsent || caloriesBurned != null) {
+      map['calories_burned'] = Variable<int>(caloriesBurned);
     }
     if (!nullToAbsent || proteinGrams != null) {
       map['protein_grams'] = Variable<double>(proteinGrams);
@@ -1026,6 +1056,9 @@ class HealthSnapshotRow extends DataClass
       caloriesConsumed: caloriesConsumed == null && nullToAbsent
           ? const Value.absent()
           : Value(caloriesConsumed),
+      caloriesBurned: caloriesBurned == null && nullToAbsent
+          ? const Value.absent()
+          : Value(caloriesBurned),
       proteinGrams: proteinGrams == null && nullToAbsent
           ? const Value.absent()
           : Value(proteinGrams),
@@ -1049,6 +1082,7 @@ class HealthSnapshotRow extends DataClass
       workoutsCompleted: serializer.fromJson<int>(json['workoutsCompleted']),
       syncedAt: serializer.fromJson<DateTime>(json['syncedAt']),
       caloriesConsumed: serializer.fromJson<int?>(json['caloriesConsumed']),
+      caloriesBurned: serializer.fromJson<int?>(json['caloriesBurned']),
       proteinGrams: serializer.fromJson<double?>(json['proteinGrams']),
       carbsGrams: serializer.fromJson<double?>(json['carbsGrams']),
       fatGrams: serializer.fromJson<double?>(json['fatGrams']),
@@ -1063,6 +1097,7 @@ class HealthSnapshotRow extends DataClass
       'workoutsCompleted': serializer.toJson<int>(workoutsCompleted),
       'syncedAt': serializer.toJson<DateTime>(syncedAt),
       'caloriesConsumed': serializer.toJson<int?>(caloriesConsumed),
+      'caloriesBurned': serializer.toJson<int?>(caloriesBurned),
       'proteinGrams': serializer.toJson<double?>(proteinGrams),
       'carbsGrams': serializer.toJson<double?>(carbsGrams),
       'fatGrams': serializer.toJson<double?>(fatGrams),
@@ -1075,6 +1110,7 @@ class HealthSnapshotRow extends DataClass
     int? workoutsCompleted,
     DateTime? syncedAt,
     Value<int?> caloriesConsumed = const Value.absent(),
+    Value<int?> caloriesBurned = const Value.absent(),
     Value<double?> proteinGrams = const Value.absent(),
     Value<double?> carbsGrams = const Value.absent(),
     Value<double?> fatGrams = const Value.absent(),
@@ -1086,6 +1122,9 @@ class HealthSnapshotRow extends DataClass
     caloriesConsumed: caloriesConsumed.present
         ? caloriesConsumed.value
         : this.caloriesConsumed,
+    caloriesBurned: caloriesBurned.present
+        ? caloriesBurned.value
+        : this.caloriesBurned,
     proteinGrams: proteinGrams.present ? proteinGrams.value : this.proteinGrams,
     carbsGrams: carbsGrams.present ? carbsGrams.value : this.carbsGrams,
     fatGrams: fatGrams.present ? fatGrams.value : this.fatGrams,
@@ -1101,6 +1140,9 @@ class HealthSnapshotRow extends DataClass
       caloriesConsumed: data.caloriesConsumed.present
           ? data.caloriesConsumed.value
           : this.caloriesConsumed,
+      caloriesBurned: data.caloriesBurned.present
+          ? data.caloriesBurned.value
+          : this.caloriesBurned,
       proteinGrams: data.proteinGrams.present
           ? data.proteinGrams.value
           : this.proteinGrams,
@@ -1119,6 +1161,7 @@ class HealthSnapshotRow extends DataClass
           ..write('workoutsCompleted: $workoutsCompleted, ')
           ..write('syncedAt: $syncedAt, ')
           ..write('caloriesConsumed: $caloriesConsumed, ')
+          ..write('caloriesBurned: $caloriesBurned, ')
           ..write('proteinGrams: $proteinGrams, ')
           ..write('carbsGrams: $carbsGrams, ')
           ..write('fatGrams: $fatGrams')
@@ -1133,6 +1176,7 @@ class HealthSnapshotRow extends DataClass
     workoutsCompleted,
     syncedAt,
     caloriesConsumed,
+    caloriesBurned,
     proteinGrams,
     carbsGrams,
     fatGrams,
@@ -1146,6 +1190,7 @@ class HealthSnapshotRow extends DataClass
           other.workoutsCompleted == this.workoutsCompleted &&
           other.syncedAt == this.syncedAt &&
           other.caloriesConsumed == this.caloriesConsumed &&
+          other.caloriesBurned == this.caloriesBurned &&
           other.proteinGrams == this.proteinGrams &&
           other.carbsGrams == this.carbsGrams &&
           other.fatGrams == this.fatGrams);
@@ -1157,6 +1202,7 @@ class HealthSnapshotsCompanion extends UpdateCompanion<HealthSnapshotRow> {
   final Value<int> workoutsCompleted;
   final Value<DateTime> syncedAt;
   final Value<int?> caloriesConsumed;
+  final Value<int?> caloriesBurned;
   final Value<double?> proteinGrams;
   final Value<double?> carbsGrams;
   final Value<double?> fatGrams;
@@ -1167,6 +1213,7 @@ class HealthSnapshotsCompanion extends UpdateCompanion<HealthSnapshotRow> {
     this.workoutsCompleted = const Value.absent(),
     this.syncedAt = const Value.absent(),
     this.caloriesConsumed = const Value.absent(),
+    this.caloriesBurned = const Value.absent(),
     this.proteinGrams = const Value.absent(),
     this.carbsGrams = const Value.absent(),
     this.fatGrams = const Value.absent(),
@@ -1178,6 +1225,7 @@ class HealthSnapshotsCompanion extends UpdateCompanion<HealthSnapshotRow> {
     this.workoutsCompleted = const Value.absent(),
     required DateTime syncedAt,
     this.caloriesConsumed = const Value.absent(),
+    this.caloriesBurned = const Value.absent(),
     this.proteinGrams = const Value.absent(),
     this.carbsGrams = const Value.absent(),
     this.fatGrams = const Value.absent(),
@@ -1190,6 +1238,7 @@ class HealthSnapshotsCompanion extends UpdateCompanion<HealthSnapshotRow> {
     Expression<int>? workoutsCompleted,
     Expression<DateTime>? syncedAt,
     Expression<int>? caloriesConsumed,
+    Expression<int>? caloriesBurned,
     Expression<double>? proteinGrams,
     Expression<double>? carbsGrams,
     Expression<double>? fatGrams,
@@ -1201,6 +1250,7 @@ class HealthSnapshotsCompanion extends UpdateCompanion<HealthSnapshotRow> {
       if (workoutsCompleted != null) 'workouts_completed': workoutsCompleted,
       if (syncedAt != null) 'synced_at': syncedAt,
       if (caloriesConsumed != null) 'calories_consumed': caloriesConsumed,
+      if (caloriesBurned != null) 'calories_burned': caloriesBurned,
       if (proteinGrams != null) 'protein_grams': proteinGrams,
       if (carbsGrams != null) 'carbs_grams': carbsGrams,
       if (fatGrams != null) 'fat_grams': fatGrams,
@@ -1214,6 +1264,7 @@ class HealthSnapshotsCompanion extends UpdateCompanion<HealthSnapshotRow> {
     Value<int>? workoutsCompleted,
     Value<DateTime>? syncedAt,
     Value<int?>? caloriesConsumed,
+    Value<int?>? caloriesBurned,
     Value<double?>? proteinGrams,
     Value<double?>? carbsGrams,
     Value<double?>? fatGrams,
@@ -1225,6 +1276,7 @@ class HealthSnapshotsCompanion extends UpdateCompanion<HealthSnapshotRow> {
       workoutsCompleted: workoutsCompleted ?? this.workoutsCompleted,
       syncedAt: syncedAt ?? this.syncedAt,
       caloriesConsumed: caloriesConsumed ?? this.caloriesConsumed,
+      caloriesBurned: caloriesBurned ?? this.caloriesBurned,
       proteinGrams: proteinGrams ?? this.proteinGrams,
       carbsGrams: carbsGrams ?? this.carbsGrams,
       fatGrams: fatGrams ?? this.fatGrams,
@@ -1250,6 +1302,9 @@ class HealthSnapshotsCompanion extends UpdateCompanion<HealthSnapshotRow> {
     if (caloriesConsumed.present) {
       map['calories_consumed'] = Variable<int>(caloriesConsumed.value);
     }
+    if (caloriesBurned.present) {
+      map['calories_burned'] = Variable<int>(caloriesBurned.value);
+    }
     if (proteinGrams.present) {
       map['protein_grams'] = Variable<double>(proteinGrams.value);
     }
@@ -1273,6 +1328,7 @@ class HealthSnapshotsCompanion extends UpdateCompanion<HealthSnapshotRow> {
           ..write('workoutsCompleted: $workoutsCompleted, ')
           ..write('syncedAt: $syncedAt, ')
           ..write('caloriesConsumed: $caloriesConsumed, ')
+          ..write('caloriesBurned: $caloriesBurned, ')
           ..write('proteinGrams: $proteinGrams, ')
           ..write('carbsGrams: $carbsGrams, ')
           ..write('fatGrams: $fatGrams, ')
@@ -3901,6 +3957,7 @@ typedef $$HealthSnapshotsTableCreateCompanionBuilder =
       Value<int> workoutsCompleted,
       required DateTime syncedAt,
       Value<int?> caloriesConsumed,
+      Value<int?> caloriesBurned,
       Value<double?> proteinGrams,
       Value<double?> carbsGrams,
       Value<double?> fatGrams,
@@ -3913,6 +3970,7 @@ typedef $$HealthSnapshotsTableUpdateCompanionBuilder =
       Value<int> workoutsCompleted,
       Value<DateTime> syncedAt,
       Value<int?> caloriesConsumed,
+      Value<int?> caloriesBurned,
       Value<double?> proteinGrams,
       Value<double?> carbsGrams,
       Value<double?> fatGrams,
@@ -3950,6 +4008,11 @@ class $$HealthSnapshotsTableFilterComposer
 
   ColumnFilters<int> get caloriesConsumed => $composableBuilder(
     column: $table.caloriesConsumed,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get caloriesBurned => $composableBuilder(
+    column: $table.caloriesBurned,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4003,6 +4066,11 @@ class $$HealthSnapshotsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get caloriesBurned => $composableBuilder(
+    column: $table.caloriesBurned,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<double> get proteinGrams => $composableBuilder(
     column: $table.proteinGrams,
     builder: (column) => ColumnOrderings(column),
@@ -4044,6 +4112,11 @@ class $$HealthSnapshotsTableAnnotationComposer
 
   GeneratedColumn<int> get caloriesConsumed => $composableBuilder(
     column: $table.caloriesConsumed,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get caloriesBurned => $composableBuilder(
+    column: $table.caloriesBurned,
     builder: (column) => column,
   );
 
@@ -4103,6 +4176,7 @@ class $$HealthSnapshotsTableTableManager
                 Value<int> workoutsCompleted = const Value.absent(),
                 Value<DateTime> syncedAt = const Value.absent(),
                 Value<int?> caloriesConsumed = const Value.absent(),
+                Value<int?> caloriesBurned = const Value.absent(),
                 Value<double?> proteinGrams = const Value.absent(),
                 Value<double?> carbsGrams = const Value.absent(),
                 Value<double?> fatGrams = const Value.absent(),
@@ -4113,6 +4187,7 @@ class $$HealthSnapshotsTableTableManager
                 workoutsCompleted: workoutsCompleted,
                 syncedAt: syncedAt,
                 caloriesConsumed: caloriesConsumed,
+                caloriesBurned: caloriesBurned,
                 proteinGrams: proteinGrams,
                 carbsGrams: carbsGrams,
                 fatGrams: fatGrams,
@@ -4125,6 +4200,7 @@ class $$HealthSnapshotsTableTableManager
                 Value<int> workoutsCompleted = const Value.absent(),
                 required DateTime syncedAt,
                 Value<int?> caloriesConsumed = const Value.absent(),
+                Value<int?> caloriesBurned = const Value.absent(),
                 Value<double?> proteinGrams = const Value.absent(),
                 Value<double?> carbsGrams = const Value.absent(),
                 Value<double?> fatGrams = const Value.absent(),
@@ -4135,6 +4211,7 @@ class $$HealthSnapshotsTableTableManager
                 workoutsCompleted: workoutsCompleted,
                 syncedAt: syncedAt,
                 caloriesConsumed: caloriesConsumed,
+                caloriesBurned: caloriesBurned,
                 proteinGrams: proteinGrams,
                 carbsGrams: carbsGrams,
                 fatGrams: fatGrams,

@@ -8,9 +8,10 @@ import '../domain/macro_calculator_input.dart';
 import 'health_sync_providers.dart';
 
 /// Mifflin-St Jeor based macro calculator. Loads the last-used profile and
-/// the current tracked weight, recomputes live as fields change, and can
-/// apply the result straight onto DailyGoals (keeping stepGoal untouched —
-/// see macro_calculator.dart).
+/// the current tracked weight, recomputes a suggestion live as profile
+/// fields change, and lets the calories/macros themselves be edited by
+/// hand before applying — the formula is a starting point, not the final
+/// word (see _resultsEdited below).
 class MacroCalculatorScreen extends ConsumerStatefulWidget {
   const MacroCalculatorScreen({super.key});
 
@@ -29,6 +30,16 @@ class _MacroCalculatorScreenState
   final _ageController = TextEditingController();
   final _weightController = TextEditingController();
   final _heightController = TextEditingController();
+
+  final _calorieGoalController = TextEditingController();
+  final _proteinGoalController = TextEditingController();
+  final _carbsGoalController = TextEditingController();
+  final _fatGoalController = TextEditingController();
+
+  /// True once the user has typed into one of the result fields directly —
+  /// from then on, changing the profile no longer overwrites their edit.
+  bool _resultsEdited = false;
+
   bool _loaded = false;
   bool _applying = false;
 
@@ -58,6 +69,7 @@ class _MacroCalculatorScreenState
       );
       _heightController.text = profile.heightCm.toStringAsFixed(0);
       _loaded = true;
+      _syncResultFieldsToSuggestion();
     });
   }
 
@@ -66,6 +78,10 @@ class _MacroCalculatorScreenState
     _ageController.dispose();
     _weightController.dispose();
     _heightController.dispose();
+    _calorieGoalController.dispose();
+    _proteinGoalController.dispose();
+    _carbsGoalController.dispose();
+    _fatGoalController.dispose();
     super.dispose();
   }
 
@@ -74,7 +90,10 @@ class _MacroCalculatorScreenState
       double.tryParse(_weightController.text.trim().replaceAll(',', '.'));
   double? get _heightCm => double.tryParse(_heightController.text.trim());
 
-  MacroTargets? get _targets {
+  /// The live suggestion computed from the profile fields — shown as a
+  /// reference, and used to seed the editable result fields until the user
+  /// overrides them.
+  MacroTargets? get _suggestion {
     final age = _age;
     final weightKg = _weightKg;
     final heightCm = _heightCm;
@@ -94,31 +113,68 @@ class _MacroCalculatorScreenState
     );
   }
 
+  void _syncResultFieldsToSuggestion() {
+    final suggestion = _suggestion;
+    if (suggestion == null) return;
+    _calorieGoalController.text = suggestion.calorieGoal.toString();
+    _proteinGoalController.text = suggestion.proteinGoal.toStringAsFixed(0);
+    _carbsGoalController.text = suggestion.carbsGoal.toStringAsFixed(0);
+    _fatGoalController.text = suggestion.fatGoal.toStringAsFixed(0);
+  }
+
+  void _onProfileChanged() {
+    setState(() {
+      if (!_resultsEdited) _syncResultFieldsToSuggestion();
+    });
+  }
+
+  void _resetResultsToSuggestion() {
+    setState(() {
+      _resultsEdited = false;
+      _syncResultFieldsToSuggestion();
+    });
+  }
+
+  int? get _calorieGoal => int.tryParse(_calorieGoalController.text.trim());
+  double? get _proteinGoal =>
+      double.tryParse(_proteinGoalController.text.trim());
+  double? get _carbsGoal => double.tryParse(_carbsGoalController.text.trim());
+  double? get _fatGoal => double.tryParse(_fatGoalController.text.trim());
+
+  bool get _canApply =>
+      (_calorieGoal ?? 0) > 0 &&
+      (_proteinGoal ?? 0) > 0 &&
+      (_carbsGoal ?? 0) > 0 &&
+      (_fatGoal ?? 0) > 0;
+
   Future<void> _apply() async {
-    final targets = _targets;
-    if (targets == null) return;
+    if (!_canApply) return;
 
     setState(() => _applying = true);
     final repository = ref.read(healthSyncRepositoryProvider);
 
-    await repository.updateCalculatorProfile(
-      MacroCalculatorProfile(
-        sex: _sex,
-        age: _age!,
-        heightCm: _heightCm!,
-        activityLevel: _activityLevel,
-        objective: _objective,
-      ),
-    );
+    final age = _age;
+    final heightCm = _heightCm;
+    if (age != null && heightCm != null) {
+      await repository.updateCalculatorProfile(
+        MacroCalculatorProfile(
+          sex: _sex,
+          age: age,
+          heightCm: heightCm,
+          activityLevel: _activityLevel,
+          objective: _objective,
+        ),
+      );
+    }
 
     final currentGoals = await repository.fetchGoals();
     await repository.updateGoals(
       DailyGoals(
         stepGoal: currentGoals.stepGoal,
-        calorieGoal: targets.calorieGoal,
-        proteinGoal: targets.proteinGoal,
-        carbsGoal: targets.carbsGoal,
-        fatGoal: targets.fatGoal,
+        calorieGoal: _calorieGoal!,
+        proteinGoal: _proteinGoal!,
+        carbsGoal: _carbsGoal!,
+        fatGoal: _fatGoal!,
       ),
     );
 
@@ -127,7 +183,7 @@ class _MacroCalculatorScreenState
 
   @override
   Widget build(BuildContext context) {
-    final targets = _targets;
+    final suggestion = _suggestion;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Calculateur de macros')),
@@ -137,7 +193,7 @@ class _MacroCalculatorScreenState
               padding: const EdgeInsets.all(20),
               children: [
                 const Text(
-                  'Basé sur la formule de Mifflin-St Jeor. Les protéines et lipides sont calculés par kilo de poids de corps, les glucides comblent le reste.',
+                  'Basé sur la formule de Mifflin-St Jeor. Les protéines et lipides sont calculés par kilo de poids de corps, les glucides comblent le reste — ajuste librement le résultat avant d\'appliquer.',
                   style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
                 ),
                 const SizedBox(height: 24),
@@ -158,8 +214,10 @@ class _MacroCalculatorScreenState
                     ),
                   ],
                   selected: {_sex},
-                  onSelectionChanged: (selection) =>
-                      setState(() => _sex = selection.first),
+                  onSelectionChanged: (selection) {
+                    _sex = selection.first;
+                    _onProfileChanged();
+                  },
                 ),
                 const SizedBox(height: 20),
                 Row(
@@ -168,7 +226,7 @@ class _MacroCalculatorScreenState
                       child: _NumberField(
                         label: 'Âge',
                         controller: _ageController,
-                        onChanged: () => setState(() {}),
+                        onChanged: _onProfileChanged,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -176,7 +234,7 @@ class _MacroCalculatorScreenState
                       child: _NumberField(
                         label: 'Poids (kg)',
                         controller: _weightController,
-                        onChanged: () => setState(() {}),
+                        onChanged: _onProfileChanged,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -184,7 +242,7 @@ class _MacroCalculatorScreenState
                       child: _NumberField(
                         label: 'Taille (cm)',
                         controller: _heightController,
-                        onChanged: () => setState(() {}),
+                        onChanged: _onProfileChanged,
                       ),
                     ),
                   ],
@@ -208,7 +266,9 @@ class _MacroCalculatorScreenState
                       )
                       .toList(),
                   onChanged: (value) {
-                    if (value != null) setState(() => _activityLevel = value);
+                    if (value == null) return;
+                    _activityLevel = value;
+                    _onProfileChanged();
                   },
                 ),
                 const SizedBox(height: 4),
@@ -238,14 +298,41 @@ class _MacroCalculatorScreenState
                     ),
                   ],
                   selected: {_objective},
-                  onSelectionChanged: (selection) =>
-                      setState(() => _objective = selection.first),
+                  onSelectionChanged: (selection) {
+                    _objective = selection.first;
+                    _onProfileChanged();
+                  },
                 ),
                 const SizedBox(height: 28),
-                if (targets != null) _ResultCard(targets: targets),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Objectifs à appliquer',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    if (_resultsEdited && suggestion != null)
+                      TextButton(
+                        onPressed: _resetResultsToSuggestion,
+                        child: const Text('Reprendre la suggestion'),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                _EditableResultCard(
+                  calorieController: _calorieGoalController,
+                  proteinController: _proteinGoalController,
+                  carbsController: _carbsGoalController,
+                  fatController: _fatGoalController,
+                  onChanged: () => setState(() => _resultsEdited = true),
+                ),
                 const SizedBox(height: 28),
                 FilledButton(
-                  onPressed: targets != null && !_applying ? _apply : null,
+                  onPressed: _canApply && !_applying ? _apply : null,
                   child: Text(
                     _applying ? 'Application...' : 'Appliquer aux objectifs',
                   ),
@@ -288,10 +375,20 @@ class _NumberField extends StatelessWidget {
   }
 }
 
-class _ResultCard extends StatelessWidget {
-  const _ResultCard({required this.targets});
+class _EditableResultCard extends StatelessWidget {
+  const _EditableResultCard({
+    required this.calorieController,
+    required this.proteinController,
+    required this.carbsController,
+    required this.fatController,
+    required this.onChanged,
+  });
 
-  final MacroTargets targets;
+  final TextEditingController calorieController;
+  final TextEditingController proteinController;
+  final TextEditingController carbsController;
+  final TextEditingController fatController;
+  final VoidCallback onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -307,12 +404,22 @@ class _ResultCard extends StatelessWidget {
           Center(
             child: Column(
               children: [
-                Text(
-                  '${targets.calorieGoal}',
-                  style: const TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.accent,
+                SizedBox(
+                  width: 140,
+                  child: TextField(
+                    controller: calorieController,
+                    textAlign: TextAlign.center,
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.accent,
+                    ),
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(vertical: 8),
+                    ),
+                    onChanged: (_) => onChanged(),
                   ),
                 ),
                 const Text(
@@ -327,38 +434,66 @@ class _ResultCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          _MacroLine(label: 'Protéines', grams: targets.proteinGoal),
-          const SizedBox(height: 10),
-          _MacroLine(label: 'Glucides', grams: targets.carbsGoal),
-          const SizedBox(height: 10),
-          _MacroLine(label: 'Lipides', grams: targets.fatGoal),
+          _MacroField(
+            label: 'Protéines (g)',
+            controller: proteinController,
+            onChanged: onChanged,
+          ),
+          const SizedBox(height: 12),
+          _MacroField(
+            label: 'Glucides (g)',
+            controller: carbsController,
+            onChanged: onChanged,
+          ),
+          const SizedBox(height: 12),
+          _MacroField(
+            label: 'Lipides (g)',
+            controller: fatController,
+            onChanged: onChanged,
+          ),
         ],
       ),
     );
   }
 }
 
-class _MacroLine extends StatelessWidget {
-  const _MacroLine({required this.label, required this.grams});
+class _MacroField extends StatelessWidget {
+  const _MacroField({
+    required this.label,
+    required this.controller,
+    required this.onChanged,
+  });
 
   final String label;
-  final double grams;
+  final TextEditingController controller;
+  final VoidCallback onChanged;
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+          ),
         ),
-        Text(
-          '${grams.round()} g',
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary,
+        SizedBox(
+          width: 90,
+          child: TextField(
+            controller: controller,
+            textAlign: TextAlign.end,
+            keyboardType: TextInputType.number,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+            ),
+            decoration: const InputDecoration(
+              isDense: true,
+              contentPadding: EdgeInsets.symmetric(vertical: 8),
+            ),
+            onChanged: (_) => onChanged(),
           ),
         ),
       ],

@@ -6,6 +6,7 @@ import '../domain/daily_nutrition.dart';
 import '../domain/daily_steps.dart';
 import '../domain/data_source_mode.dart';
 import '../domain/health_snapshot.dart';
+import '../domain/macro_calculator_input.dart';
 import '../domain/weight_entry.dart';
 import '../domain/workout_category.dart';
 import '../domain/workout_entry.dart';
@@ -314,6 +315,42 @@ class HealthSyncRepository {
     carbsGoal: row.carbsGoal,
     fatGoal: row.fatGoal,
   );
+
+  // --- Macro calculator profile (remembered inputs, excluding weight) ---
+
+  Future<MacroCalculatorProfile> fetchCalculatorProfile() async {
+    final row = await (_db.select(
+      _db.macroCalculatorInputs,
+    )..where((t) => t.id.equals(0))).getSingleOrNull();
+    if (row == null) return MacroCalculatorProfile.defaults;
+
+    return MacroCalculatorProfile(
+      sex: Sex.values.asNameMap()[row.sex] ?? Sex.male,
+      age: row.age,
+      heightCm: row.heightCm,
+      activityLevel:
+          ActivityLevel.values.asNameMap()[row.activityLevel] ??
+          ActivityLevel.moderate,
+      objective:
+          NutritionObjective.values.asNameMap()[row.objective] ??
+          NutritionObjective.maintain,
+    );
+  }
+
+  Future<void> updateCalculatorProfile(MacroCalculatorProfile profile) {
+    return _db
+        .into(_db.macroCalculatorInputs)
+        .insertOnConflictUpdate(
+          MacroCalculatorInputsCompanion.insert(
+            id: const Value(0),
+            sex: Value(profile.sex.name),
+            age: Value(profile.age),
+            heightCm: Value(profile.heightCm),
+            activityLevel: Value(profile.activityLevel.name),
+            objective: Value(profile.objective.name),
+          ),
+        );
+  }
 
   /// Recomputes the cached "today" snapshot that the home summary card and
   /// gamification read. Health Connect provides the baseline; workouts and

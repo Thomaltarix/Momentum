@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../domain/daily_goals.dart';
 import 'health_sync_providers.dart';
+import 'macro_calculator_screen.dart';
 
 /// Edits the daily targets shown on the home summary card and in the
 /// Nutrition/Pas history screens — replaces the fixed placeholders that
@@ -78,6 +79,13 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
     if (mounted) Navigator.of(context).pop();
   }
 
+  Future<void> _openCalculator() async {
+    final applied = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => const MacroCalculatorScreen()),
+    );
+    if (applied == true) await _load();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -90,6 +98,41 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
                 const Text(
                   'Ces valeurs remplacent les repères par défaut sur l\'accueil et les écrans Pas/Nutrition.',
                   style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: 16),
+                Material(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: _openCalculator,
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.calculate_outlined, color: AppColors.accent, size: 20),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Calculer mes calories et macros',
+                              style: TextStyle(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          Icon(
+                            Icons.chevron_right,
+                            color: AppColors.textSecondary,
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 _GoalField(

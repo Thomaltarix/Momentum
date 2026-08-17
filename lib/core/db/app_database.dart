@@ -10,6 +10,7 @@ import '../../features/gamification/data/gamification_tables.dart';
 import '../../features/health_sync/data/data_source_settings_table.dart';
 import '../../features/health_sync/data/goals_table.dart';
 import '../../features/health_sync/data/health_snapshots_table.dart';
+import '../../features/health_sync/data/macro_calculator_inputs_table.dart';
 import '../../features/health_sync/data/manual_entries_tables.dart';
 import '../../features/health_sync/domain/workout_category.dart';
 import '../../features/routines/data/routines_table.dart';
@@ -30,6 +31,7 @@ part 'app_database.g.dart';
     NutritionEntries,
     WorkoutEntries,
     Goals,
+    MacroCalculatorInputs,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -42,10 +44,12 @@ class AppDatabase extends _$AppDatabase {
   // v4: + HealthSnapshots.caloriesBurned (calories spent via workouts,
   // shown on the home summary card).
   // v5: + Goals (user-configurable step/calorie/macro targets, replacing
-  // the hardcoded placeholders used until Phase 6). Never edit a past
-  // migration step — add a new one instead, per claude/data-model.md.
+  // the hardcoded placeholders used until Phase 6).
+  // v6: + MacroCalculatorInputs (remembers the last values typed into the
+  // macro calculator). Never edit a past migration step — add a new one
+  // instead, per claude/data-model.md.
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -66,6 +70,9 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 5) {
         await m.createTable(goals);
+      }
+      if (from < 6) {
+        await m.createTable(macroCalculatorInputs);
       }
     },
   );

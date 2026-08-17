@@ -3676,6 +3676,402 @@ class GoalsCompanion extends UpdateCompanion<GoalsRow> {
   }
 }
 
+class $MacroCalculatorInputsTable extends MacroCalculatorInputs
+    with TableInfo<$MacroCalculatorInputsTable, MacroCalculatorInputsRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MacroCalculatorInputsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _sexMeta = const VerificationMeta('sex');
+  @override
+  late final GeneratedColumn<String> sex = GeneratedColumn<String>(
+    'sex',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('male'),
+  );
+  static const VerificationMeta _ageMeta = const VerificationMeta('age');
+  @override
+  late final GeneratedColumn<int> age = GeneratedColumn<int>(
+    'age',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(30),
+  );
+  static const VerificationMeta _heightCmMeta = const VerificationMeta(
+    'heightCm',
+  );
+  @override
+  late final GeneratedColumn<double> heightCm = GeneratedColumn<double>(
+    'height_cm',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(175),
+  );
+  static const VerificationMeta _activityLevelMeta = const VerificationMeta(
+    'activityLevel',
+  );
+  @override
+  late final GeneratedColumn<String> activityLevel = GeneratedColumn<String>(
+    'activity_level',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('moderate'),
+  );
+  static const VerificationMeta _objectiveMeta = const VerificationMeta(
+    'objective',
+  );
+  @override
+  late final GeneratedColumn<String> objective = GeneratedColumn<String>(
+    'objective',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('maintain'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    sex,
+    age,
+    heightCm,
+    activityLevel,
+    objective,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'macro_calculator_inputs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MacroCalculatorInputsRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('sex')) {
+      context.handle(
+        _sexMeta,
+        sex.isAcceptableOrUnknown(data['sex']!, _sexMeta),
+      );
+    }
+    if (data.containsKey('age')) {
+      context.handle(
+        _ageMeta,
+        age.isAcceptableOrUnknown(data['age']!, _ageMeta),
+      );
+    }
+    if (data.containsKey('height_cm')) {
+      context.handle(
+        _heightCmMeta,
+        heightCm.isAcceptableOrUnknown(data['height_cm']!, _heightCmMeta),
+      );
+    }
+    if (data.containsKey('activity_level')) {
+      context.handle(
+        _activityLevelMeta,
+        activityLevel.isAcceptableOrUnknown(
+          data['activity_level']!,
+          _activityLevelMeta,
+        ),
+      );
+    }
+    if (data.containsKey('objective')) {
+      context.handle(
+        _objectiveMeta,
+        objective.isAcceptableOrUnknown(data['objective']!, _objectiveMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MacroCalculatorInputsRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MacroCalculatorInputsRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      sex: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sex'],
+      )!,
+      age: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}age'],
+      )!,
+      heightCm: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}height_cm'],
+      )!,
+      activityLevel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}activity_level'],
+      )!,
+      objective: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}objective'],
+      )!,
+    );
+  }
+
+  @override
+  $MacroCalculatorInputsTable createAlias(String alias) {
+    return $MacroCalculatorInputsTable(attachedDatabase, alias);
+  }
+}
+
+class MacroCalculatorInputsRow extends DataClass
+    implements Insertable<MacroCalculatorInputsRow> {
+  final int id;
+  final String sex;
+  final int age;
+  final double heightCm;
+  final String activityLevel;
+  final String objective;
+  const MacroCalculatorInputsRow({
+    required this.id,
+    required this.sex,
+    required this.age,
+    required this.heightCm,
+    required this.activityLevel,
+    required this.objective,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['sex'] = Variable<String>(sex);
+    map['age'] = Variable<int>(age);
+    map['height_cm'] = Variable<double>(heightCm);
+    map['activity_level'] = Variable<String>(activityLevel);
+    map['objective'] = Variable<String>(objective);
+    return map;
+  }
+
+  MacroCalculatorInputsCompanion toCompanion(bool nullToAbsent) {
+    return MacroCalculatorInputsCompanion(
+      id: Value(id),
+      sex: Value(sex),
+      age: Value(age),
+      heightCm: Value(heightCm),
+      activityLevel: Value(activityLevel),
+      objective: Value(objective),
+    );
+  }
+
+  factory MacroCalculatorInputsRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MacroCalculatorInputsRow(
+      id: serializer.fromJson<int>(json['id']),
+      sex: serializer.fromJson<String>(json['sex']),
+      age: serializer.fromJson<int>(json['age']),
+      heightCm: serializer.fromJson<double>(json['heightCm']),
+      activityLevel: serializer.fromJson<String>(json['activityLevel']),
+      objective: serializer.fromJson<String>(json['objective']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'sex': serializer.toJson<String>(sex),
+      'age': serializer.toJson<int>(age),
+      'heightCm': serializer.toJson<double>(heightCm),
+      'activityLevel': serializer.toJson<String>(activityLevel),
+      'objective': serializer.toJson<String>(objective),
+    };
+  }
+
+  MacroCalculatorInputsRow copyWith({
+    int? id,
+    String? sex,
+    int? age,
+    double? heightCm,
+    String? activityLevel,
+    String? objective,
+  }) => MacroCalculatorInputsRow(
+    id: id ?? this.id,
+    sex: sex ?? this.sex,
+    age: age ?? this.age,
+    heightCm: heightCm ?? this.heightCm,
+    activityLevel: activityLevel ?? this.activityLevel,
+    objective: objective ?? this.objective,
+  );
+  MacroCalculatorInputsRow copyWithCompanion(
+    MacroCalculatorInputsCompanion data,
+  ) {
+    return MacroCalculatorInputsRow(
+      id: data.id.present ? data.id.value : this.id,
+      sex: data.sex.present ? data.sex.value : this.sex,
+      age: data.age.present ? data.age.value : this.age,
+      heightCm: data.heightCm.present ? data.heightCm.value : this.heightCm,
+      activityLevel: data.activityLevel.present
+          ? data.activityLevel.value
+          : this.activityLevel,
+      objective: data.objective.present ? data.objective.value : this.objective,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MacroCalculatorInputsRow(')
+          ..write('id: $id, ')
+          ..write('sex: $sex, ')
+          ..write('age: $age, ')
+          ..write('heightCm: $heightCm, ')
+          ..write('activityLevel: $activityLevel, ')
+          ..write('objective: $objective')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, sex, age, heightCm, activityLevel, objective);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MacroCalculatorInputsRow &&
+          other.id == this.id &&
+          other.sex == this.sex &&
+          other.age == this.age &&
+          other.heightCm == this.heightCm &&
+          other.activityLevel == this.activityLevel &&
+          other.objective == this.objective);
+}
+
+class MacroCalculatorInputsCompanion
+    extends UpdateCompanion<MacroCalculatorInputsRow> {
+  final Value<int> id;
+  final Value<String> sex;
+  final Value<int> age;
+  final Value<double> heightCm;
+  final Value<String> activityLevel;
+  final Value<String> objective;
+  const MacroCalculatorInputsCompanion({
+    this.id = const Value.absent(),
+    this.sex = const Value.absent(),
+    this.age = const Value.absent(),
+    this.heightCm = const Value.absent(),
+    this.activityLevel = const Value.absent(),
+    this.objective = const Value.absent(),
+  });
+  MacroCalculatorInputsCompanion.insert({
+    this.id = const Value.absent(),
+    this.sex = const Value.absent(),
+    this.age = const Value.absent(),
+    this.heightCm = const Value.absent(),
+    this.activityLevel = const Value.absent(),
+    this.objective = const Value.absent(),
+  });
+  static Insertable<MacroCalculatorInputsRow> custom({
+    Expression<int>? id,
+    Expression<String>? sex,
+    Expression<int>? age,
+    Expression<double>? heightCm,
+    Expression<String>? activityLevel,
+    Expression<String>? objective,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (sex != null) 'sex': sex,
+      if (age != null) 'age': age,
+      if (heightCm != null) 'height_cm': heightCm,
+      if (activityLevel != null) 'activity_level': activityLevel,
+      if (objective != null) 'objective': objective,
+    });
+  }
+
+  MacroCalculatorInputsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? sex,
+    Value<int>? age,
+    Value<double>? heightCm,
+    Value<String>? activityLevel,
+    Value<String>? objective,
+  }) {
+    return MacroCalculatorInputsCompanion(
+      id: id ?? this.id,
+      sex: sex ?? this.sex,
+      age: age ?? this.age,
+      heightCm: heightCm ?? this.heightCm,
+      activityLevel: activityLevel ?? this.activityLevel,
+      objective: objective ?? this.objective,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (sex.present) {
+      map['sex'] = Variable<String>(sex.value);
+    }
+    if (age.present) {
+      map['age'] = Variable<int>(age.value);
+    }
+    if (heightCm.present) {
+      map['height_cm'] = Variable<double>(heightCm.value);
+    }
+    if (activityLevel.present) {
+      map['activity_level'] = Variable<String>(activityLevel.value);
+    }
+    if (objective.present) {
+      map['objective'] = Variable<String>(objective.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MacroCalculatorInputsCompanion(')
+          ..write('id: $id, ')
+          ..write('sex: $sex, ')
+          ..write('age: $age, ')
+          ..write('heightCm: $heightCm, ')
+          ..write('activityLevel: $activityLevel, ')
+          ..write('objective: $objective')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3696,6 +4092,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $WorkoutEntriesTable workoutEntries = $WorkoutEntriesTable(this);
   late final $GoalsTable goals = $GoalsTable(this);
+  late final $MacroCalculatorInputsTable macroCalculatorInputs =
+      $MacroCalculatorInputsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3711,6 +4109,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     nutritionEntries,
     workoutEntries,
     goals,
+    macroCalculatorInputs,
   ];
 }
 
@@ -5982,6 +6381,240 @@ typedef $$GoalsTableProcessedTableManager =
       GoalsRow,
       PrefetchHooks Function()
     >;
+typedef $$MacroCalculatorInputsTableCreateCompanionBuilder =
+    MacroCalculatorInputsCompanion Function({
+      Value<int> id,
+      Value<String> sex,
+      Value<int> age,
+      Value<double> heightCm,
+      Value<String> activityLevel,
+      Value<String> objective,
+    });
+typedef $$MacroCalculatorInputsTableUpdateCompanionBuilder =
+    MacroCalculatorInputsCompanion Function({
+      Value<int> id,
+      Value<String> sex,
+      Value<int> age,
+      Value<double> heightCm,
+      Value<String> activityLevel,
+      Value<String> objective,
+    });
+
+class $$MacroCalculatorInputsTableFilterComposer
+    extends Composer<_$AppDatabase, $MacroCalculatorInputsTable> {
+  $$MacroCalculatorInputsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sex => $composableBuilder(
+    column: $table.sex,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get age => $composableBuilder(
+    column: $table.age,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get heightCm => $composableBuilder(
+    column: $table.heightCm,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get activityLevel => $composableBuilder(
+    column: $table.activityLevel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get objective => $composableBuilder(
+    column: $table.objective,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$MacroCalculatorInputsTableOrderingComposer
+    extends Composer<_$AppDatabase, $MacroCalculatorInputsTable> {
+  $$MacroCalculatorInputsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sex => $composableBuilder(
+    column: $table.sex,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get age => $composableBuilder(
+    column: $table.age,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get heightCm => $composableBuilder(
+    column: $table.heightCm,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get activityLevel => $composableBuilder(
+    column: $table.activityLevel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get objective => $composableBuilder(
+    column: $table.objective,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$MacroCalculatorInputsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MacroCalculatorInputsTable> {
+  $$MacroCalculatorInputsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get sex =>
+      $composableBuilder(column: $table.sex, builder: (column) => column);
+
+  GeneratedColumn<int> get age =>
+      $composableBuilder(column: $table.age, builder: (column) => column);
+
+  GeneratedColumn<double> get heightCm =>
+      $composableBuilder(column: $table.heightCm, builder: (column) => column);
+
+  GeneratedColumn<String> get activityLevel => $composableBuilder(
+    column: $table.activityLevel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get objective =>
+      $composableBuilder(column: $table.objective, builder: (column) => column);
+}
+
+class $$MacroCalculatorInputsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MacroCalculatorInputsTable,
+          MacroCalculatorInputsRow,
+          $$MacroCalculatorInputsTableFilterComposer,
+          $$MacroCalculatorInputsTableOrderingComposer,
+          $$MacroCalculatorInputsTableAnnotationComposer,
+          $$MacroCalculatorInputsTableCreateCompanionBuilder,
+          $$MacroCalculatorInputsTableUpdateCompanionBuilder,
+          (
+            MacroCalculatorInputsRow,
+            BaseReferences<
+              _$AppDatabase,
+              $MacroCalculatorInputsTable,
+              MacroCalculatorInputsRow
+            >,
+          ),
+          MacroCalculatorInputsRow,
+          PrefetchHooks Function()
+        > {
+  $$MacroCalculatorInputsTableTableManager(
+    _$AppDatabase db,
+    $MacroCalculatorInputsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MacroCalculatorInputsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$MacroCalculatorInputsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$MacroCalculatorInputsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> sex = const Value.absent(),
+                Value<int> age = const Value.absent(),
+                Value<double> heightCm = const Value.absent(),
+                Value<String> activityLevel = const Value.absent(),
+                Value<String> objective = const Value.absent(),
+              }) => MacroCalculatorInputsCompanion(
+                id: id,
+                sex: sex,
+                age: age,
+                heightCm: heightCm,
+                activityLevel: activityLevel,
+                objective: objective,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> sex = const Value.absent(),
+                Value<int> age = const Value.absent(),
+                Value<double> heightCm = const Value.absent(),
+                Value<String> activityLevel = const Value.absent(),
+                Value<String> objective = const Value.absent(),
+              }) => MacroCalculatorInputsCompanion.insert(
+                id: id,
+                sex: sex,
+                age: age,
+                heightCm: heightCm,
+                activityLevel: activityLevel,
+                objective: objective,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$MacroCalculatorInputsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MacroCalculatorInputsTable,
+      MacroCalculatorInputsRow,
+      $$MacroCalculatorInputsTableFilterComposer,
+      $$MacroCalculatorInputsTableOrderingComposer,
+      $$MacroCalculatorInputsTableAnnotationComposer,
+      $$MacroCalculatorInputsTableCreateCompanionBuilder,
+      $$MacroCalculatorInputsTableUpdateCompanionBuilder,
+      (
+        MacroCalculatorInputsRow,
+        BaseReferences<
+          _$AppDatabase,
+          $MacroCalculatorInputsTable,
+          MacroCalculatorInputsRow
+        >,
+      ),
+      MacroCalculatorInputsRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -6006,4 +6639,6 @@ class $AppDatabaseManager {
       $$WorkoutEntriesTableTableManager(_db, _db.workoutEntries);
   $$GoalsTableTableManager get goals =>
       $$GoalsTableTableManager(_db, _db.goals);
+  $$MacroCalculatorInputsTableTableManager get macroCalculatorInputs =>
+      $$MacroCalculatorInputsTableTableManager(_db, _db.macroCalculatorInputs);
 }

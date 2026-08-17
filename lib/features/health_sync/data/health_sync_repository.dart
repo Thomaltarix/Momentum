@@ -3,8 +3,10 @@ import 'package:drift/drift.dart';
 import '../../../core/db/app_database.dart';
 import '../domain/daily_nutrition.dart';
 import '../domain/daily_steps.dart';
+import '../domain/data_source_mode.dart';
 import '../domain/health_snapshot.dart';
 import '../domain/weight_entry.dart';
+import '../domain/workout_category.dart';
 import '../domain/workout_entry.dart';
 import 'health_connect_client.dart';
 
@@ -41,14 +43,228 @@ class HealthSyncRepository {
   Future<List<DailySteps>> fetchStepsHistory(int days) =>
       _client.fetchStepsHistory(days);
 
-  Future<List<WorkoutEntry>> fetchWorkoutsHistory(int days) =>
-      _client.fetchWorkoutsHistory(days);
+  Future<List<WorkoutEntry>> fetchWorkoutsHistory(int days) async {
+    final mode = await fetchWorkoutSourceMode();
+    return mode == DataSourceMode.manual
+        ? _fetchManualWorkoutsHistory(days)
+        : _client.fetchWorkoutsHistory(days);
+  }
 
-  Future<List<DailyNutrition>> fetchNutritionHistory(int days) =>
-      _client.fetchNutritionHistory(days);
+  Future<List<DailyNutrition>> fetchNutritionHistory(int days) async {
+    final mode = await fetchNutritionSourceMode();
+    return mode == DataSourceMode.manual
+        ? _fetchManualNutritionHistory(days)
+        : _client.fetchNutritionHistory(days);
+  }
 
-  Future<List<WeightEntry>> fetchWeightHistory(int days) =>
-      _client.fetchWeightHistory(days);
+  Future<List<WeightEntry>> fetchWeightHistory(int days) async {
+    final mode = await fetchWeightSourceMode();
+    return mode == DataSourceMode.manual
+        ? _fetchManualWeightHistory(days)
+        : _client.fetchWeightHistory(days);
+  }
+
+  // --- Data source mode (per metric: Health Connect or manual entry) ---
+
+  Future<DataSourceMode> fetchWeightSourceMode() =>
+      _fetchMode((row) => row.weightSource);
+
+  Future<DataSourceMode> fetchWorkoutSourceMode() =>
+      _fetchMode((row) => row.workoutSource);
+
+  Future<DataSourceMode> fetchNutritionSourceMode() =>
+      _fetchMode((row) => row.nutritionSource);
+
+  Future<void> setWeightSourceMode(DataSourceMode mode) => _setMode(
+    DataSourceSettingsCompanion(
+      id: const Value(0),
+      weightSource: Value(mode.name),
+    ),
+  );
+
+  Future<void> setWorkoutSourceMode(DataSourceMode mode) => _setMode(
+    DataSourceSettingsCompanion(
+      id: const Value(0),
+      workoutSource: Value(mode.name),
+    ),
+  );
+
+  Future<void> setNutritionSourceMode(DataSourceMode mode) => _setMode(
+    DataSourceSettingsCompanion(
+      id: const Value(0),
+      nutritionSource: Value(mode.name),
+    ),
+  );
+
+  Future<DataSourceMode> _fetchMode(
+    String Function(DataSourceSettingRow) field,
+  ) async {
+    final row = await (_db.select(
+      _db.dataSourceSettings,
+    )..where((t) => t.id.equals(0))).getSingleOrNull();
+    return row == null ? DataSourceMode.healthConnect : _parseMode(field(row));
+  }
+
+  Future<void> _setMode(DataSourceSettingsCompanion companion) =>
+      _db.into(_db.dataSourceSettings).insertOnConflictUpdate(companion);
+
+  DataSourceMode _parseMode(String raw) =>
+      DataSourceMode.values.asNameMap()[raw] ?? DataSourceMode.healthConnect;
+
+  // --- Manual weight entries ---
+
+  Future<void> addManualWeightEntry({
+    required DateTime date,
+    required double kilograms,
+  }) {
+    return _db
+        .into(_db.weightEntries)
+        .insertOnConflictUpdate(
+          WeightEntriesCompanion.insert(
+            date: _normalizeDate(date),
+            kilograms: kilograms,
+          ),
+        );
+  }
+
+  Future<void> deleteManualWeightEntry(DateTime date) {
+    return (_db.delete(
+      _db.weightEntries,
+    )..where((t) => t.date.equals(_normalizeDate(date)))).go();
+  }
+
+  Future<List<WeightEntry>> _fetchManualWeightHistory(int days) async {
+    final DateTime start = _normalizeDate(
+      DateTime.now(),
+    ).subtract(Duration(days: days - 1));
+    final rows =
+        await (_db.select(_db.weightEntries)
+              ..where((t) => t.date.isBiggerOrEqualValue(start))
+              ..orderBy([(t) => OrderingTerm.desc(t.date)]))
+            .get();
+    return rows
+        .map((row) => WeightEntry(date: row.date, kilograms: row.kilograms))
+        .toList();
+  }
+
+  // --- Manual nutrition entries ---
+
+  Future<void> addManualNutritionEntry({
+    required DateTime date,
+    required int calories,
+    double? proteinGrams,
+    double? carbsGrams,
+    double? fatGrams,
+  }) {
+    return _db
+        .into(_db.nutritionEntries)
+        .insertOnConflictUpdate(
+          NutritionEntriesCompanion.insert(
+            date: _normalizeDate(date),
+            calories: calories,
+            proteinGrams: Value(proteinGrams),
+            carbsGrams: Value(carbsGrams),
+            fatGrams: Value(fatGrams),
+          ),
+        );
+  }
+
+  Future<void> deleteManualNutritionEntry(DateTime date) {
+    return (_db.delete(
+      _db.nutritionEntries,
+    )..where((t) => t.date.equals(_normalizeDate(date)))).go();
+  }
+
+  Future<List<DailyNutrition>> _fetchManualNutritionHistory(int days) async {
+    final DateTime today = _normalizeDate(DateTime.now());
+    final DateTime start = today.subtract(Duration(days: days - 1));
+    final rows = await (_db.select(
+      _db.nutritionEntries,
+    )..where((t) => t.date.isBiggerOrEqualValue(start))).get();
+    final Map<DateTime, NutritionEntryRow> byDate = {
+      for (final row in rows) row.date: row,
+    };
+
+    return List.generate(days, (i) {
+      final DateTime day = start.add(Duration(days: i));
+      final row = byDate[day];
+      if (row == null) return DailyNutrition(date: day);
+      return DailyNutrition(
+        date: day,
+        calories: row.calories,
+        proteinGrams: row.proteinGrams,
+        carbsGrams: row.carbsGrams,
+        fatGrams: row.fatGrams,
+      );
+    }).reversed.toList();
+  }
+
+  // --- Manual workout entries ---
+
+  Future<void> addManualWorkoutEntry({
+    required WorkoutCategory category,
+    required DateTime start,
+    required DateTime end,
+    int? caloriesBurned,
+  }) {
+    return _db
+        .into(_db.workoutEntries)
+        .insert(
+          WorkoutEntriesCompanion.insert(
+            category: category,
+            start: start,
+            end: end,
+            caloriesBurned: Value(caloriesBurned),
+          ),
+        );
+  }
+
+  Future<void> updateManualWorkoutEntry({
+    required int id,
+    required WorkoutCategory category,
+    required DateTime start,
+    required DateTime end,
+    int? caloriesBurned,
+  }) {
+    return (_db.update(_db.workoutEntries)..where((t) => t.id.equals(id)))
+        .write(
+          WorkoutEntriesCompanion(
+            category: Value(category),
+            start: Value(start),
+            end: Value(end),
+            caloriesBurned: Value(caloriesBurned),
+          ),
+        );
+  }
+
+  Future<void> deleteManualWorkoutEntry(int id) {
+    return (_db.delete(
+      _db.workoutEntries,
+    )..where((t) => t.id.equals(id))).go();
+  }
+
+  Future<List<WorkoutEntry>> _fetchManualWorkoutsHistory(int days) async {
+    final DateTime start = _normalizeDate(
+      DateTime.now(),
+    ).subtract(Duration(days: days - 1));
+    final rows =
+        await (_db.select(_db.workoutEntries)
+              ..where((t) => t.start.isBiggerOrEqualValue(start))
+              ..orderBy([(t) => OrderingTerm.desc(t.start)]))
+            .get();
+    return rows
+        .map(
+          (row) => WorkoutEntry(
+            id: row.id,
+            category: row.category,
+            label: row.category.label,
+            start: row.start,
+            end: row.end,
+            caloriesBurned: row.caloriesBurned,
+          ),
+        )
+        .toList();
+  }
 
   Future<void> refreshToday() async {
     final HealthSnapshot snapshot = await _client.fetchToday();

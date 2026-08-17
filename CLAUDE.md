@@ -14,7 +14,7 @@ Durable engineering principles for this repository. This file is auto-loaded eve
 
 ## What this app is
 
-Momentum is a solo, gamified daily-habit app: routines with scheduled notifications, plus steps/workouts/nutrition read from Health Connect (Android) — not tracked from scratch. Gamification (XP, streaks, badges) is a layer that reacts to routine completions and health data, not a source of truth for anything.
+Momentum is a solo, gamified daily-habit app: routines with scheduled notifications, plus steps/workouts/nutrition normally read from Health Connect (Android) — not tracked from scratch. Weight, workouts, and nutrition can each independently be switched to manual entry instead, for whichever metric doesn't have a reliable source app syncing into Health Connect — see "Health data" below. Gamification (XP, streaks, badges) is a layer that reacts to routine completions and health data, not a source of truth for anything.
 
 ## Architecture
 
@@ -22,7 +22,7 @@ Momentum is a solo, gamified daily-habit app: routines with scheduled notificati
 - `lib/core/` is only for genuinely cross-cutting infra (routing, theme, local database, notification plugin wrapper) — not a dumping ground.
 - Dependency direction within a feature: presentation → domain → data. Domain code never imports Flutter widgets.
 - Across features: `gamification` depends on `routines` and `health_sync` (reads their domain models). `routines` and `health_sync` never depend on `gamification`. No circular dependencies.
-- Momentum does not build its own sensors or nutrition database. Steps, workouts, and nutrition are read-only from Health Connect via the `health` package. See [`claude/architecture.md`](claude/architecture.md).
+- Momentum does not build its own sensors or nutrition database. Steps always come from Health Connect via the `health` package; weight, workouts, and nutrition are read from Health Connect by default but can each be switched to manual entry (a per-metric `DataSourceSettings` choice — see `claude/data-model.md`). Manual entries are a raw number typed in (a weigh-in, a session, a day's kcal/macros), never a full log/diary — that would be rebuilding what Health Connect's source apps already do. See [`claude/architecture.md`](claude/architecture.md).
 - No backend. Single user, single device, all state local. Revisit only if multi-device sync or social features are actually built (see roadmap).
 
 ## Flutter / Dart
@@ -37,7 +37,8 @@ Momentum is a solo, gamified daily-habit app: routines with scheduled notificati
 ## Health data
 
 - The `health` package is the single integration point for Health Connect (Android) / HealthKit (iOS, later). No other code talks to platform health APIs directly.
-- Read-only, always. Momentum never writes back to Health Connect.
+- Read-only towards Health Connect, always — Momentum never writes back to it, whether the metric's source is Health Connect or manual entry.
+- Manual entries live in their own local Drift tables, never merged with Health Connect data for the same metric at the same time (that would double-count — e.g. a manually-logged workout later synced by Lyfta). A metric is one source or the other, chosen explicitly, not both at once.
 - Explain in-app why a permission is needed before triggering the OS prompt.
 
 ## Gamification

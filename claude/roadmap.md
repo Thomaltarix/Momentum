@@ -62,6 +62,17 @@ Branches: `feat/design-system`, `feat/health-history`, `feat/weight-tracking` (s
 
 Verified on-device (Nothing Phone) once the phone became available: re-granting Health Connect permissions correctly listed all four categories including "Poids", and every screen showed real data — 7-day step history with correct goal-met checkmarks, an empty-but-honest state for Séances/Nutrition (no source app configured on this phone, shown as "—" rather than a fake zero), and a real weight entry on the Statut screen. One bug found and fixed this pass: the "Personnalisé" recurrence segment wrapped to two lines at that width — labels now wrapped in `FittedBox`. No crashes in logcat across the whole walkthrough.
 
+## Phase 5.5 — Manual data entry (done)
+
+Brought forward from Phase 7's "manual workout logging fallback" and widened to weight and nutrition too, prompted by the owner not knowing which app was writing their weight into Health Connect and wanting a way to enter it directly instead of guessing.
+
+- `DataSourceMode` (`healthConnect` \| `manual`) per metric, stored in a new single-row `data_source_settings` table — independent per metric, so e.g. weight can be manual while workouts stay on Lyfta.
+- Three new tables for typed-in entries: `weight_entries` and `nutrition_entries` (one row per day, upsert — re-entering a day overwrites it), `workout_entries` (auto-increment id, since several sessions can happen the same day). Schema bumped to v3.
+- `HealthSyncRepository`'s read methods branch on the mode instead of merging both sources — deliberately not merged, to avoid double-counting a session/day that later also gets synced from Health Connect.
+- Each of the three history screens (Statut/Séances/Nutrition) gained a `DataSourceToggle` (`SegmentedButton`, same widget reused across all three) and, in manual mode, an add button plus tap-to-edit on existing entries. Add/edit screens follow `add_routine_screen.dart`'s form style. Nutrition manual entry stays a raw daily total (kcal + optional macros), deliberately not a food diary — see root `CLAUDE.md`.
+
+Branch: `feat/manual-data-entry`. `flutter analyze` and `flutter test` clean, debug APK builds successfully. Not yet verified on-device — unlike earlier phases, this pass hasn't been walked through on the Nothing Phone yet; do that before considering it fully done (in particular: confirm the migration runs cleanly against the phone's existing database, per Phase 4's lesson about `schemaVersion` bumps).
+
 ## Phase 6 — Onboarding and polish
 
 - First-run flow: set step goal, calorie/macro goals, add initial routines from a couple of suggested templates (e.g. "weigh-in after waking", "5000 steps", "morning workout").
@@ -71,5 +82,5 @@ Verified on-device (Nothing Phone) once the phone became available: re-granting 
 
 - **iOS support** — architecturally possible (the `health` package abstracts HealthKit the same way), but untested until there's an iOS device available.
 - **Social / leaderboard gamification** — would require a backend (auth, shared state across users). Explicitly out of scope while gamification stays solo.
-- **Manual workout logging fallback** — only needed if Lyfta ever stops syncing to Health Connect; not built preemptively.
+- ~~**Manual workout logging fallback**~~ — done in Phase 5.5, widened to weight and nutrition too.
 - **Multi-device sync** — only relevant if a second device enters the picture; local-only Drift storage is sufficient today.

@@ -37,6 +37,44 @@ One row per routine per day it was completed. Streak math in `routines/domain` r
 
 Refreshed on app foreground and after an explicit pull-to-refresh — not on a background schedule, to keep permission usage predictable and avoid battery complaints.
 
+## `data_source_settings` (feature: `health_sync`)
+
+Single-row table (`id` always `0`) — one source choice per metric, independent of the others.
+
+| Column | Type | Notes |
+|---|---|---|
+| `weightSource` / `workoutSource` / `nutritionSource` | text (`healthConnect` \| `manual`) | which source `HealthSyncRepository` reads that metric from; defaults to `healthConnect` |
+
+## `weight_entries` (feature: `health_sync`)
+
+| Column | Type | Notes |
+|---|---|---|
+| `date` | date, PK | one weigh-in per day — re-entering the same day overwrites it (upsert) |
+| `kilograms` | real | |
+
+Only read when `weightSource = manual`. Never merged with Health Connect readings for the same day — a metric is on one source or the other, not both (see root `CLAUDE.md`).
+
+## `nutrition_entries` (feature: `health_sync`)
+
+| Column | Type | Notes |
+|---|---|---|
+| `date` | date, PK | one raw daily total per day, upsert like `weight_entries` |
+| `calories` | int | |
+| `proteinGrams` / `carbsGrams` / `fatGrams` | real (nullable) | optional — a number typed in, not a food diary |
+
+Only read when `nutritionSource = manual`.
+
+## `workout_entries` (feature: `health_sync`)
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | int, PK | auto-increment, unlike weight/nutrition — several sessions can happen the same day |
+| `category` | text (enum `WorkoutCategory`) | |
+| `start` / `end` | datetime | duration is entered directly in minutes on the add screen and converted to an end time, not picked as two times |
+| `caloriesBurned` | int (nullable) | |
+
+Only read when `workoutSource = manual`.
+
 ## `gamification_state` (feature: `gamification`)
 
 Single-row table (`id` always `1`) — there's only ever one user.

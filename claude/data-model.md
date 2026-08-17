@@ -30,10 +30,13 @@ One row per routine per day it was completed. Streak math in `routines/domain` r
 |---|---|---|
 | `date` | date, PK | one row per day |
 | `steps` | int | from Health Connect (phone sensor) |
-| `caloriesConsumed` | int (nullable) | from Health Connect (MyFitnessPal) |
-| `proteinGrams` / `carbsGrams` / `fatGrams` | real (nullable) | from Health Connect, when the source app provides macro breakdown |
-| `workoutsCompleted` | int | count of workout sessions that day, from Health Connect (Lyfta) |
+| `caloriesConsumed` | int (nullable) | nutrition intake — Health Connect (MyFitnessPal) or today's manual entry, per `nutritionSource` |
+| `proteinGrams` / `carbsGrams` / `fatGrams` | real (nullable) | same source as `caloriesConsumed`, when the source provides a macro breakdown |
+| `workoutsCompleted` | int | count of workout sessions that day — Health Connect (Lyfta) or manual entries, per `workoutSource` |
+| `caloriesBurned` | int (nullable) | calories spent via exercise — summed from Health Connect's `totalEnergyBurned` or from today's manual workout entries, per `workoutSource` |
 | `syncedAt` | datetime | when this row was last refreshed from the platform API |
+
+Since Phase 5.5, `refreshToday()` checks `data_source_settings` before writing this row: a metric in `manual` mode is populated from that metric's manual table instead of Health Connect. Written on app foreground, permission grant, and immediately after any manual workout/nutrition write for today — see `architecture.md`.
 
 Refreshed on app foreground and after an explicit pull-to-refresh — not on a background schedule, to keep permission usage predictable and avoid battery complaints.
 

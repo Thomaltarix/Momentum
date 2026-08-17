@@ -2,12 +2,18 @@ import 'workout_category.dart';
 
 class WorkoutEntry {
   const WorkoutEntry({
+    this.id,
     required this.category,
     required this.label,
     required this.start,
     required this.end,
     this.caloriesBurned,
   });
+
+  /// Row id for a manually-entered workout, so it can be edited/deleted.
+  /// Null for entries read from Health Connect — Momentum never writes back
+  /// to it, so there's nothing to edit.
+  final int? id;
 
   final WorkoutCategory category;
 

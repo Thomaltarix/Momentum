@@ -3,21 +3,60 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/notifications/notification_service.dart';
 import '../../../core/theme/app_colors.dart';
+import '../domain/routine.dart';
 import '../domain/routine_recurrence.dart';
 import 'routines_providers.dart';
 
 class AddRoutineScreen extends ConsumerStatefulWidget {
-  const AddRoutineScreen({super.key});
+  const AddRoutineScreen({super.key})
+    : existing = null,
+      suggestedTitle = null,
+      suggestedTime = null;
+
+  /// Pre-fills every field from [routine] and saves via an update instead
+  /// of an insert.
+  const AddRoutineScreen.edit(Routine routine, {super.key})
+    : existing = routine,
+      suggestedTitle = null,
+      suggestedTime = null;
+
+  /// Pre-fills just the title/time (daily recurrence, the common case) —
+  /// used by the home screen's first-run suggestions. Still a normal add;
+  /// the user reviews/adjusts before saving, same as any other routine.
+  const AddRoutineScreen.suggested({
+    required String title,
+    required TimeOfDay time,
+    super.key,
+  }) : existing = null,
+       suggestedTitle = title,
+       suggestedTime = time;
+
+  final Routine? existing;
+  final String? suggestedTitle;
+  final TimeOfDay? suggestedTime;
 
   @override
   ConsumerState<AddRoutineScreen> createState() => _AddRoutineScreenState();
 }
 
 class _AddRoutineScreenState extends ConsumerState<AddRoutineScreen> {
-  final _titleController = TextEditingController();
-  TimeOfDay _time = const TimeOfDay(hour: 8, minute: 0);
-  RoutineRecurrence _recurrence = RoutineRecurrence.daily;
-  final Set<int> _customDays = {};
+  late final _titleController = TextEditingController(text: _initialTitle);
+  late TimeOfDay _time = _initialTime;
+  late RoutineRecurrence _recurrence = widget.existing?.recurrence ?? RoutineRecurrence.daily;
+  late final Set<int> _customDays = {...?widget.existing?.customDays};
+
+  bool get _isEditing => widget.existing != null;
+
+  String get _initialTitle =>
+      widget.existing?.title ?? widget.suggestedTitle ?? '';
+
+  TimeOfDay get _initialTime {
+    if (widget.existing?.scheduledTime case final String hhmm?) {
+      final parts = hhmm.split(':');
+      return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+    }
+    return widget.suggestedTime ?? const TimeOfDay(hour: 8, minute: 0);
+  }
 
   static const _dayLabels = {
     DateTime.monday: 'L',
@@ -58,17 +97,28 @@ class _AddRoutineScreenState extends ConsumerState<AddRoutineScreen> {
     final scheduledTime =
         '${_time.hour.toString().padLeft(2, '0')}:'
         '${_time.minute.toString().padLeft(2, '0')}';
+    final title = _titleController.text.trim();
+    final customDays = _recurrence == RoutineRecurrence.custom
+        ? _customDays.toList()
+        : null;
 
-    await ref
-        .read(routinesRepositoryProvider)
-        .addRoutine(
-          title: _titleController.text.trim(),
-          scheduledTime: scheduledTime,
-          recurrence: _recurrence,
-          customDays: _recurrence == RoutineRecurrence.custom
-              ? _customDays.toList()
-              : null,
-        );
+    final repository = ref.read(routinesRepositoryProvider);
+    if (_isEditing) {
+      await repository.updateRoutine(
+        id: widget.existing!.id,
+        title: title,
+        scheduledTime: scheduledTime,
+        recurrence: _recurrence,
+        customDays: customDays,
+      );
+    } else {
+      await repository.addRoutine(
+        title: title,
+        scheduledTime: scheduledTime,
+        recurrence: _recurrence,
+        customDays: customDays,
+      );
+    }
 
     if (mounted) Navigator.of(context).pop();
   }
@@ -76,7 +126,9 @@ class _AddRoutineScreenState extends ConsumerState<AddRoutineScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Nouvelle routine')),
+      appBar: AppBar(
+        title: Text(_isEditing ? 'Modifier la routine' : 'Nouvelle routine'),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [

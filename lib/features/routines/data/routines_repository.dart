@@ -68,6 +68,35 @@ class RoutinesRepository {
     );
   }
 
+  Future<void> updateRoutine({
+    required int id,
+    required String title,
+    required String scheduledTime,
+    required RoutineRecurrence recurrence,
+    List<int>? customDays,
+  }) async {
+    await (_db.update(_db.routines)..where((t) => t.id.equals(id))).write(
+      RoutinesCompanion(
+        title: Value(title),
+        scheduledTime: Value(scheduledTime),
+        recurrence: Value(recurrence),
+        customDays: Value(customDays?.join(',')),
+      ),
+    );
+
+    await _scheduler.reschedule(
+      Routine(
+        id: id,
+        title: title,
+        trigger: RoutineTrigger.fixedTime,
+        scheduledTime: scheduledTime,
+        recurrence: recurrence,
+        customDays: customDays,
+        createdAt: DateTime.now(),
+      ),
+    );
+  }
+
   Future<void> deleteRoutine(int id) async {
     await (_db.delete(_db.routines)..where((t) => t.id.equals(id))).go();
     await _scheduler.cancel(id);

@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../domain/data_source_mode.dart';
 import '../domain/weight_entry.dart';
+import 'add_weight_entry_screen.dart';
 import 'health_sync_providers.dart';
+import 'data_source_toggle.dart';
 
 class StatusScreen extends ConsumerStatefulWidget {
   const StatusScreen({super.key});
@@ -15,6 +18,7 @@ class StatusScreen extends ConsumerStatefulWidget {
 
 class _StatusScreenState extends ConsumerState<StatusScreen> {
   List<WeightEntry>? _history;
+  DataSourceMode _mode = DataSourceMode.healthConnect;
 
   @override
   void initState() {
@@ -23,10 +27,29 @@ class _StatusScreenState extends ConsumerState<StatusScreen> {
   }
 
   Future<void> _load() async {
-    final history = await ref
-        .read(healthSyncRepositoryProvider)
-        .fetchWeightHistory(30);
-    if (mounted) setState(() => _history = history);
+    final repository = ref.read(healthSyncRepositoryProvider);
+    final mode = await repository.fetchWeightSourceMode();
+    final history = await repository.fetchWeightHistory(30);
+    if (mounted) {
+      setState(() {
+        _mode = mode;
+        _history = history;
+      });
+    }
+  }
+
+  Future<void> _setMode(DataSourceMode mode) async {
+    await ref.read(healthSyncRepositoryProvider).setWeightSourceMode(mode);
+    await _load();
+  }
+
+  Future<void> _openEntry([WeightEntry? existing]) async {
+    final saved = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => AddWeightEntryScreen(existing: existing),
+      ),
+    );
+    if (saved == true) await _load();
   }
 
   String _formatKg(double kg) => kg.toStringAsFixed(1).replaceAll('.', ',');
@@ -44,22 +67,45 @@ class _StatusScreenState extends ConsumerState<StatusScreen> {
   @override
   Widget build(BuildContext context) {
     final history = _history;
+    final isManual = _mode == DataSourceMode.manual;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Statut')),
+      appBar: AppBar(
+        title: const Text('Statut'),
+        actions: [
+          if (isManual)
+            IconButton(
+              onPressed: () => _openEntry(),
+              icon: const Icon(Icons.add),
+            ),
+        ],
+      ),
       body: history == null
           ? const Center(child: CircularProgressIndicator())
-          : history.isEmpty
-          ? const Center(
-              child: Text(
-                'Aucune pesée enregistrée sur les 30 derniers jours.',
-                style: TextStyle(color: AppColors.textSecondary),
-              ),
-            )
-          : _StatusBody(
-              history: history,
-              formatKg: _formatKg,
-              formatDay: _formatDay,
+          : ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                DataSourceToggle(mode: _mode, onChanged: _setMode),
+                const SizedBox(height: 20),
+                if (history.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 40),
+                    child: Center(
+                      child: Text(
+                        'Aucune pesée enregistrée sur les 30 derniers jours.',
+                        style: TextStyle(color: AppColors.textSecondary),
+                      ),
+                    ),
+                  )
+                else
+                  _StatusBody(
+                    history: history,
+                    formatKg: _formatKg,
+                    formatDay: _formatDay,
+                    editable: isManual,
+                    onTapEntry: _openEntry,
+                  ),
+              ],
             ),
     );
   }
@@ -70,11 +116,15 @@ class _StatusBody extends StatelessWidget {
     required this.history,
     required this.formatKg,
     required this.formatDay,
+    required this.editable,
+    required this.onTapEntry,
   });
 
   final List<WeightEntry> history;
   final String Function(double) formatKg;
   final String Function(DateTime) formatDay;
+  final bool editable;
+  final ValueChanged<WeightEntry> onTapEntry;
 
   @override
   Widget build(BuildContext context) {
@@ -84,8 +134,8 @@ class _StatusBody extends StatelessWidget {
         : null;
     final chronological = history.reversed.toList();
 
-    return ListView(
-      padding: const EdgeInsets.all(20),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           padding: const EdgeInsets.all(20),
@@ -172,28 +222,43 @@ class _StatusBody extends StatelessWidget {
         ...history.map(
           (entry) => Padding(
             padding: const EdgeInsets.only(bottom: 10),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
+            child: Material(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(16),
+              child: InkWell(
                 borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      formatDay(entry.date),
-                      style: const TextStyle(color: AppColors.textPrimary),
-                    ),
+                onTap: editable ? () => onTapEntry(entry) : null,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
                   ),
-                  Text(
-                    '${formatKg(entry.kilograms)} kg',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textPrimary,
-                    ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          formatDay(entry.date),
+                          style: const TextStyle(color: AppColors.textPrimary),
+                        ),
+                      ),
+                      Text(
+                        '${formatKg(entry.kilograms)} kg',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      if (editable) ...[
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.chevron_right,
+                          color: AppColors.textSecondary,
+                          size: 18,
+                        ),
+                      ],
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),

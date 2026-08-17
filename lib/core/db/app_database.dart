@@ -10,6 +10,7 @@ import '../../features/gamification/data/gamification_tables.dart';
 import '../../features/health_sync/data/data_source_settings_table.dart';
 import '../../features/health_sync/data/health_snapshots_table.dart';
 import '../../features/health_sync/data/manual_entries_tables.dart';
+import '../../features/health_sync/domain/workout_category.dart';
 import '../../features/routines/data/routines_table.dart';
 import '../../features/routines/domain/routine_recurrence.dart';
 import '../../features/routines/domain/routine_trigger.dart';

@@ -51,6 +51,13 @@ class NotificationService {
     return granted ?? false;
   }
 
+  /// Checks current status without prompting — used by the settings screen
+  /// to offer a "re-enable" action only when actually needed.
+  Future<bool> hasPermission() async {
+    final bool? enabled = await _androidPlugin?.areNotificationsEnabled();
+    return enabled ?? false;
+  }
+
   /// "Alarms & reminders" is a special Android 13+ permission granted in
   /// system settings, not a runtime dialog — calling this always navigates
   /// the user out of the app. Not called automatically anywhere; exact

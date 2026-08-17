@@ -95,10 +95,15 @@ Manually typing calorie/macro targets works, but most people don't know what num
 
 Branch: `feat/manual-data-entry`. `flutter analyze`/`flutter test` clean (6 new unit tests). Verified on-device: v5→v6 migration ran cleanly, weight pre-filled correctly from a real tracked entry (58.5 kg), the displayed result matched the formula computed by hand, editing a result field worked and surfaced the reset button, and applying updated both `GoalsScreen` and the home card immediately.
 
-## Phase 6 — Onboarding and polish
+## Phase 6 — Onboarding and polish (done)
 
-- First-run flow: add initial routines from a couple of suggested templates (e.g. "weigh-in after waking", "5000 steps", "morning workout") — goal-setting now covered by Phase 5.6's `GoalsScreen`.
-- Settings screen: edit/delete routines, notification permission re-request if revoked.
+- `RoutinesScreen`'s empty state now distinguishes "no routines exist at all" from "none due today" (the latter keeps the old plain message — a custom-recurrence routine just not scheduled for today isn't a first-run situation). The former shows three tappable suggestion cards (weigh-in on waking, workout, evening stretch) that open the same add form pre-filled — not a silent instant-add, so the user still reviews/adjusts the time before it's real. Reuses `AddRoutineScreen` via a new named constructor (`.suggested`) rather than a separate onboarding form.
+- `AddRoutineScreen` also gained `.edit(routine)`, prefilling every field and saving through a new `RoutinesRepository.updateRoutine` (same reschedule path as create — cancel then re-schedule, so a time/recurrence change actually moves the notification) instead of insert. One widget now serves add, edit, and prefilled-suggestion, rather than three near-duplicate forms.
+- New `SettingsScreen` (gear icon in the home `AppBar`, after Badges): a notification-status row (`NotificationService.hasPermission()`, a new check-only method alongside the existing request-only one) with a "Réactiver" action when disabled, and the full routine list (not just today's) with tap-to-edit and swipe-to-delete.
+
+Branch: `feat/onboarding-and-settings`. `flutter analyze`/`flutter test` clean. Verified on-device: tapping a suggestion pre-filled correctly and saved a real, working routine; editing a routine's title from Settings persisted and showed immediately in both Settings and the list; swipe-to-delete from Settings worked; notification status correctly read "activées" with the real OS permission state. No crashes in logcat across the session.
+
+This closes every phase originally planned when this app was scoped (Phase 0 through 6) — see Phase 7 below for what's intentionally not being built next.
 
 ## Phase 7 — Deferred, not started unless requirements change
 

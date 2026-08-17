@@ -11,6 +11,7 @@ import '../domain/routine.dart';
 import '../domain/routine_schedule.dart';
 import 'add_routine_screen.dart';
 import 'routines_providers.dart';
+import 'settings_screen.dart';
 
 class RoutinesScreen extends ConsumerWidget {
   const RoutinesScreen({super.key});
@@ -38,13 +39,20 @@ class RoutinesScreen extends ConsumerWidget {
               MaterialPageRoute(builder: (_) => const StatusScreen()),
             ),
           ),
+          IconButton(
+            icon: const Icon(Icons.emoji_events_outlined),
+            tooltip: 'Badges',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const BadgesScreen()),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: IconButton(
-              icon: const Icon(Icons.emoji_events_outlined),
-              tooltip: 'Badges',
+              icon: const Icon(Icons.settings_outlined),
+              tooltip: 'Réglages',
               onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const BadgesScreen()),
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
               ),
             ),
           ),
@@ -72,6 +80,10 @@ class RoutinesScreen extends ConsumerWidget {
           Expanded(
             child: routinesAsync.when(
               data: (routines) {
+                if (routines.isEmpty) {
+                  return const _OnboardingSuggestions();
+                }
+
                 final today = DateTime.now();
                 final dueToday = routines
                     .where((routine) => isRoutineDueOn(routine, today))
@@ -123,6 +135,84 @@ class RoutinesScreen extends ConsumerWidget {
         ),
         child: const Icon(Icons.add),
       ),
+    );
+  }
+}
+
+class _OnboardingSuggestions extends StatelessWidget {
+  const _OnboardingSuggestions();
+
+  static const _templates = [
+    (title: 'Pesée au réveil', time: TimeOfDay(hour: 7, minute: 0)),
+    (title: 'Séance de sport', time: TimeOfDay(hour: 18, minute: 0)),
+    (title: 'Étirements avant de dormir', time: TimeOfDay(hour: 21, minute: 30)),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+      children: [
+        const Text(
+          'Commence par ajouter une routine — en voici quelques-unes pour démarrer.',
+          style: TextStyle(color: AppColors.textSecondary),
+        ),
+        const SizedBox(height: 16),
+        for (final template in _templates)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Material(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(16),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => AddRoutineScreen.suggested(
+                      title: template.title,
+                      time: template.time,
+                    ),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.add_circle_outline, color: AppColors.accent),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              template.title,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              template.time.format(context),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

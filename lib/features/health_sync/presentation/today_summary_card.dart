@@ -125,8 +125,7 @@ class _TodaySummaryCardState extends ConsumerState<TodaySummaryCard> {
           borderRadius: BorderRadius.circular(16),
         ),
         child: snapshotAsync.when(
-          data: (snapshot) =>
-              _SummaryRow(snapshot: snapshot, busy: _busy, onRefresh: _refresh),
+          data: (snapshot) => _SummaryRow(snapshot: snapshot),
           loading: () => const Padding(
             padding: EdgeInsets.symmetric(vertical: 24),
             child: Center(child: CircularProgressIndicator()),
@@ -140,15 +139,9 @@ class _TodaySummaryCardState extends ConsumerState<TodaySummaryCard> {
 }
 
 class _SummaryRow extends StatelessWidget {
-  const _SummaryRow({
-    required this.snapshot,
-    required this.busy,
-    required this.onRefresh,
-  });
+  const _SummaryRow({required this.snapshot});
 
   final HealthSnapshot? snapshot;
-  final bool busy;
-  final VoidCallback onRefresh;
 
   @override
   Widget build(BuildContext context) {
@@ -156,65 +149,42 @@ class _SummaryRow extends StatelessWidget {
     final bool workoutDone = (snapshot?.workoutsCompleted ?? 0) > 0;
     final int? calories = snapshot?.caloriesConsumed;
 
-    return Stack(
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            GestureDetector(
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const StepsHistoryScreen()),
-              ),
-              child: StepsRing(steps: steps, goal: defaultDailyStepGoal),
-            ),
-            const SizedBox(width: 24),
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _StatRow(
-                    label: 'Séance',
-                    value: workoutDone ? 'Faite' : '—',
-                    showCheck: workoutDone,
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const WorkoutsHistoryScreen(),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  _StatRow(
-                    label: 'Calories',
-                    value: calories != null ? '$calories kcal' : '—',
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const NutritionHistoryScreen(),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+        GestureDetector(
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const StepsHistoryScreen()),
+          ),
+          child: StepsRing(steps: steps, goal: defaultDailyStepGoal),
         ),
-        Positioned(
-          top: -4,
-          right: -4,
-          child: busy
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : IconButton(
-                  visualDensity: VisualDensity.compact,
-                  icon: const Icon(Icons.refresh, size: 18),
-                  color: AppColors.textSecondary,
-                  style: const ButtonStyle(
-                    backgroundColor: WidgetStatePropertyAll(Colors.transparent),
+        const SizedBox(width: 24),
+        Expanded(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _StatRow(
+                label: 'Séance',
+                value: workoutDone ? 'Faite' : '—',
+                showCheck: workoutDone,
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const WorkoutsHistoryScreen(),
                   ),
-                  onPressed: onRefresh,
                 ),
+              ),
+              const SizedBox(height: 14),
+              _StatRow(
+                label: 'Calories',
+                value: calories != null ? '$calories kcal' : '—',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const NutritionHistoryScreen(),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

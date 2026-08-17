@@ -155,8 +155,8 @@ class HealthSyncRepository {
     double? proteinGrams,
     double? carbsGrams,
     double? fatGrams,
-  }) {
-    return _db
+  }) async {
+    await _db
         .into(_db.nutritionEntries)
         .insertOnConflictUpdate(
           NutritionEntriesCompanion.insert(
@@ -167,12 +167,14 @@ class HealthSyncRepository {
             fatGrams: Value(fatGrams),
           ),
         );
+    await _refreshTodayIfNeeded(date);
   }
 
-  Future<void> deleteManualNutritionEntry(DateTime date) {
-    return (_db.delete(
+  Future<void> deleteManualNutritionEntry(DateTime date) async {
+    await (_db.delete(
       _db.nutritionEntries,
     )..where((t) => t.date.equals(_normalizeDate(date)))).go();
+    await _refreshTodayIfNeeded(date);
   }
 
   Future<List<DailyNutrition>> _fetchManualNutritionHistory(int days) async {
@@ -206,8 +208,8 @@ class HealthSyncRepository {
     required DateTime start,
     required DateTime end,
     int? caloriesBurned,
-  }) {
-    return _db
+  }) async {
+    await _db
         .into(_db.workoutEntries)
         .insert(
           WorkoutEntriesCompanion.insert(
@@ -217,6 +219,7 @@ class HealthSyncRepository {
             caloriesBurned: Value(caloriesBurned),
           ),
         );
+    await _refreshTodayIfNeeded(start);
   }
 
   Future<void> updateManualWorkoutEntry({
@@ -225,8 +228,8 @@ class HealthSyncRepository {
     required DateTime start,
     required DateTime end,
     int? caloriesBurned,
-  }) {
-    return (_db.update(_db.workoutEntries)..where((t) => t.id.equals(id)))
+  }) async {
+    await (_db.update(_db.workoutEntries)..where((t) => t.id.equals(id)))
         .write(
           WorkoutEntriesCompanion(
             category: Value(category),
@@ -235,12 +238,17 @@ class HealthSyncRepository {
             caloriesBurned: Value(caloriesBurned),
           ),
         );
+    await _refreshTodayIfNeeded(start);
   }
 
-  Future<void> deleteManualWorkoutEntry(int id) {
-    return (_db.delete(
+  Future<void> deleteManualWorkoutEntry(int id) async {
+    await (_db.delete(
       _db.workoutEntries,
     )..where((t) => t.id.equals(id))).go();
+    // The entry's date is unknown after delete without another query, and
+    // the home card's workout count depends on all of today's sessions —
+    // simplest correct fix is to always resync rather than track it.
+    await refreshToday();
   }
 
   Future<List<WorkoutEntry>> _fetchManualWorkoutsHistory(int days) async {
@@ -266,22 +274,71 @@ class HealthSyncRepository {
         .toList();
   }
 
+  /// Recomputes the cached "today" snapshot that the home summary card and
+  /// gamification read. Health Connect provides the baseline; workouts and
+  /// nutrition are overridden with today's manual entry when that metric's
+  /// mode is `manual`, so the card reflects whichever source is active
+  /// rather than always showing the Health Connect side.
   Future<void> refreshToday() async {
-    final HealthSnapshot snapshot = await _client.fetchToday();
+    final HealthSnapshot base = await _client.fetchToday();
+    final DateTime today = _normalizeDate(DateTime.now());
+
+    final workoutMode = await fetchWorkoutSourceMode();
+    final int workoutsCompleted = workoutMode == DataSourceMode.manual
+        ? await _countManualWorkoutsOn(today)
+        : base.workoutsCompleted;
+
+    final nutritionMode = await fetchNutritionSourceMode();
+    final NutritionEntryRow? manualNutrition =
+        nutritionMode == DataSourceMode.manual
+        ? await (_db.select(
+            _db.nutritionEntries,
+          )..where((t) => t.date.equals(today))).getSingleOrNull()
+        : null;
+    final bool useManualNutrition = nutritionMode == DataSourceMode.manual;
+
     await _db
         .into(_db.healthSnapshots)
         .insertOnConflictUpdate(
           HealthSnapshotsCompanion.insert(
-            date: snapshot.date,
-            syncedAt: snapshot.syncedAt,
-            steps: Value(snapshot.steps),
-            workoutsCompleted: Value(snapshot.workoutsCompleted),
-            caloriesConsumed: Value(snapshot.caloriesConsumed),
-            proteinGrams: Value(snapshot.proteinGrams),
-            carbsGrams: Value(snapshot.carbsGrams),
-            fatGrams: Value(snapshot.fatGrams),
+            date: base.date,
+            syncedAt: base.syncedAt,
+            steps: Value(base.steps),
+            workoutsCompleted: Value(workoutsCompleted),
+            caloriesConsumed: Value(
+              useManualNutrition ? manualNutrition?.calories : base.caloriesConsumed,
+            ),
+            proteinGrams: Value(
+              useManualNutrition ? manualNutrition?.proteinGrams : base.proteinGrams,
+            ),
+            carbsGrams: Value(
+              useManualNutrition ? manualNutrition?.carbsGrams : base.carbsGrams,
+            ),
+            fatGrams: Value(
+              useManualNutrition ? manualNutrition?.fatGrams : base.fatGrams,
+            ),
           ),
         );
+  }
+
+  Future<int> _countManualWorkoutsOn(DateTime day) async {
+    final DateTime nextDay = day.add(const Duration(days: 1));
+    final rows =
+        await (_db.select(_db.workoutEntries)..where(
+              (t) => t.start.isBiggerOrEqualValue(day) & t.start.isSmallerThanValue(nextDay),
+            ))
+            .get();
+    return rows.length;
+  }
+
+  /// Manual workout/nutrition writes affect the home card and gamification
+  /// only through the cached "today" snapshot — refresh it immediately when
+  /// the edited entry is for today, rather than waiting for the next
+  /// app-foreground refresh.
+  Future<void> _refreshTodayIfNeeded(DateTime date) async {
+    if (_normalizeDate(date) == _normalizeDate(DateTime.now())) {
+      await refreshToday();
+    }
   }
 
   DateTime _normalizeDate(DateTime date) =>

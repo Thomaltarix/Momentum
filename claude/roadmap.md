@@ -71,12 +71,23 @@ Brought forward from Phase 7's "manual workout logging fallback" and widened to 
 - `HealthSyncRepository`'s read methods branch on the mode instead of merging both sources — deliberately not merged, to avoid double-counting a session/day that later also gets synced from Health Connect.
 - Each of the three history screens (Statut/Séances/Nutrition) gained a `DataSourceToggle` (`SegmentedButton`, same widget reused across all three) and, in manual mode, an add button plus tap-to-edit on existing entries. Add/edit screens follow `add_routine_screen.dart`'s form style. Nutrition manual entry stays a raw daily total (kcal + optional macros), deliberately not a food diary — see root `CLAUDE.md`.
 
-Branch: `feat/manual-data-entry`. `flutter analyze` and `flutter test` clean. Verified on-device (Nothing Phone, reinstalled over the existing app via `adb install -r`): the v2→v3 migration ran cleanly against real data, and the toggle/add/edit flow works on all three screens (Statut, Séances, Nutrition). One bug found and fixed this pass: the home screen's Séance/Calories rows kept showing the old Health-Connect-derived value (or "—") after switching a metric to manual and adding today's entry, because `refreshToday()` — which populates the cached snapshot that card reads — only ever pulled from Health Connect, regardless of the per-metric mode. Fixed by making `refreshToday()` mode-aware and triggering it automatically after any manual workout/nutrition write for today.
+Branch: `feat/manual-data-entry`. `flutter analyze` and `flutter test` clean. Verified on-device (Nothing Phone, reinstalled over the existing app via `adb install -r`): the v2→v3 migration ran cleanly against real data, and the toggle/add/edit flow works on all three screens (Statut, Séances, Nutrition). One bug found and fixed this pass: the home screen's Séance/Calories rows kept showing the old Health-Connect-derived value (or "—") after switching a metric to manual and adding today's entry, because `refreshToday()` — which populates the cached snapshot that card reads — only ever pulled from Health Connect, regardless of the per-metric mode. Fixed by making `refreshToday()` mode-aware and triggering it automatically after any manual workout/nutrition write for today. Same pass also added `caloriesBurned` to the snapshot (summed from workouts) and a fuller home card (Séance/Dépensées/Consommées + macro bars), schema v4.
+
+## Phase 5.6 — Configurable daily goals (done)
+
+Pulled forward from Phase 6's "set goals" item — the home card's step/calorie/macro figures were being compared against numbers nobody had chosen (`defaultDailyStepGoal = 5000`, and 200/300/100g macro bar scales hardcoded in two places).
+
+- `daily_goals` table (schema v5, single row like `data_source_settings`/`gamification_state`): `stepGoal`, `calorieGoal`, `proteinGoal`, `carbsGoal`, `fatGoal`, all with defaults matching the old hardcoded numbers so nothing jumps on upgrade before the user configures anything.
+- New `GoalsScreen`, reachable from a flag icon on the home `AppBar`, pre-filled with the current values.
+- Wired everywhere the old placeholders lived: the steps ring and goal-met checkmarks (home card, Pas screen), the macro bar scales (home card, Nutrition screen — extracted into a shared `MacroBar` widget along the way since Nutrition had its own private copy), the Consommées row's new "X / goal kcal" display, and — the one cross-feature catch — `gamification`'s streak "step goal met" check, which had its own independent `defaultDailyStepGoal` import that would otherwise have silently diverged from whatever the user configures.
+- `step_goal.dart` deleted; nothing references the old constant anymore.
+
+Branch: `feat/manual-data-entry`. `flutter analyze`/`flutter test` clean. Verified on-device: v4→v5 migration ran cleanly, the Goals form loads current values, edits, and saves without error.
 
 ## Phase 6 — Onboarding and polish
 
-- First-run flow: set step goal, calorie/macro goals, add initial routines from a couple of suggested templates (e.g. "weigh-in after waking", "5000 steps", "morning workout").
-- Settings screen: edit goals, edit/delete routines, notification permission re-request if revoked.
+- First-run flow: add initial routines from a couple of suggested templates (e.g. "weigh-in after waking", "5000 steps", "morning workout") — goal-setting now covered by Phase 5.6's `GoalsScreen`.
+- Settings screen: edit/delete routines, notification permission re-request if revoked.
 
 ## Phase 7 — Deferred, not started unless requirements change
 

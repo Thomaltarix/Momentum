@@ -48,6 +48,18 @@ Single-row table (`id` always `0`) — one source choice per metric, independent
 |---|---|---|
 | `weightSource` / `workoutSource` / `nutritionSource` | text (`healthConnect` \| `manual`) | which source `HealthSyncRepository` reads that metric from; defaults to `healthConnect` |
 
+## `goals` (feature: `health_sync`)
+
+Single-row table (`id` always `0`), edited via `GoalsScreen`.
+
+| Column | Type | Notes |
+|---|---|---|
+| `stepGoal` | int | default 5000 |
+| `calorieGoal` | int | default 2200 |
+| `proteinGoal` / `carbsGoal` / `fatGoal` | real | grams; defaults 200/300/100 |
+
+Every column has a default matching what was previously hardcoded, so a missing row (fresh install, or before the user ever opens `GoalsScreen`) behaves exactly like before goals were configurable — see `DailyGoals.defaults`. Read by the home summary card, Pas/Nutrition history screens, and `gamification`'s step-goal streak check (via `HealthSyncRepository.fetchGoals()`, not a direct table read — `gamification` never imports `health_sync`'s data layer, per `architecture.md`'s dependency direction rule).
+
 ## `weight_entries` (feature: `health_sync`)
 
 | Column | Type | Notes |

@@ -1,7 +1,7 @@
 import 'gamification_state.dart';
 
-// Placeholder values, same footing as health_sync's defaultDailyStepGoal —
-// revisit once Phase 5 lets any of this be configured.
+// Placeholder values — unlike the step goal (now configurable via
+// health_sync's DailyGoals), XP tuning has no UI yet.
 const int xpPerSuccessfulDay = 20;
 const int xpPerLevel = 100;
 

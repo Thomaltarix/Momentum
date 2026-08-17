@@ -11,7 +11,7 @@ lib/
     notifications/   — flutter_local_notifications wrapper (thin: schedule/cancel primitives only)
   features/
     routines/        — todo/routine CRUD, scheduling, completion tracking
-    health_sync/      — read-only Health Connect integration (steps, workouts, nutrition)
+    health_sync/      — Health Connect integration (steps, workouts, nutrition, weight) plus manual entry for the metrics that support it
     gamification/     — XP, streaks, badges — listens to routines + health_sync
   app.dart
   main.dart
@@ -22,10 +22,11 @@ Each feature follows `data/` (repositories, Drift DAOs, `health` package calls),
 ## Data flow
 
 ```
-Health Connect (Android OS) / HealthKit (iOS, later)
-   │  `health` package, read-only
-   ▼
-features/health_sync  →  cached snapshot in Drift
+Health Connect (Android OS) / HealthKit (iOS, later)      Typed directly into Momentum
+   │  `health` package, read-only                              │
+   ▼                                                            ▼
+   └──────────────────  features/health_sync  ──────────────────┘
+                   (per metric: DataSourceSettings picks one source, never both)
    │
    ▼
 features/gamification  (listens to health_sync + routines, computes XP/streaks/badges)
@@ -35,6 +36,8 @@ features/routines  (local CRUD + scheduled notifications — Drift is the source
 ```
 
 `health_sync` caches a daily snapshot in Drift rather than re-querying the OS API on every read. Two reasons: the Health Connect API can be slow/rate-limited, and a local snapshot gives Momentum a history even on days the OS query fails or permissions get briefly revoked.
+
+Weight, workouts, and nutrition can each be switched to manual entry instead — `HealthSyncRepository` checks that metric's `DataSourceSettings` row and reads from a local `*Entries` table instead of Health Connect (see `claude/data-model.md`). The two sources are never merged for the same metric: mixing would double-count (e.g. a workout typed in by hand, then synced again by Lyfta once a wearable is set up). Still read-only towards Health Connect itself — manual entries never get written back to it.
 
 ## Dependency direction
 

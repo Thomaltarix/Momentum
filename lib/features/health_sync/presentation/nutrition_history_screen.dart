@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../domain/daily_goals.dart';
 import '../domain/daily_nutrition.dart';
+import '../domain/data_source_mode.dart';
+import 'add_nutrition_entry_screen.dart';
+import 'data_source_toggle.dart';
 import 'health_sync_providers.dart';
+import 'macro_bar.dart';
 
 class NutritionHistoryScreen extends ConsumerStatefulWidget {
   const NutritionHistoryScreen({super.key});
@@ -16,6 +21,7 @@ class NutritionHistoryScreen extends ConsumerStatefulWidget {
 class _NutritionHistoryScreenState
     extends ConsumerState<NutritionHistoryScreen> {
   List<DailyNutrition>? _history;
+  DataSourceMode _mode = DataSourceMode.healthConnect;
 
   @override
   void initState() {
@@ -24,10 +30,29 @@ class _NutritionHistoryScreenState
   }
 
   Future<void> _load() async {
-    final history = await ref
-        .read(healthSyncRepositoryProvider)
-        .fetchNutritionHistory(14);
-    if (mounted) setState(() => _history = history);
+    final repository = ref.read(healthSyncRepositoryProvider);
+    final mode = await repository.fetchNutritionSourceMode();
+    final history = await repository.fetchNutritionHistory(14);
+    if (mounted) {
+      setState(() {
+        _mode = mode;
+        _history = history;
+      });
+    }
+  }
+
+  Future<void> _setMode(DataSourceMode mode) async {
+    await ref.read(healthSyncRepositoryProvider).setNutritionSourceMode(mode);
+    await _load();
+  }
+
+  Future<void> _openEntry([DailyNutrition? existing]) async {
+    final saved = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => AddNutritionEntryScreen(existing: existing),
+      ),
+    );
+    if (saved == true) await _load();
   }
 
   String _formatDay(DateTime date) {
@@ -43,9 +68,21 @@ class _NutritionHistoryScreenState
   @override
   Widget build(BuildContext context) {
     final history = _history;
+    final isManual = _mode == DataSourceMode.manual;
+    final DailyGoals goals =
+        ref.watch(dailyGoalsProvider).valueOrNull ?? DailyGoals.defaults;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Nutrition')),
+      appBar: AppBar(
+        title: const Text('Nutrition'),
+        actions: [
+          if (isManual)
+            IconButton(
+              onPressed: () => _openEntry(),
+              icon: const Icon(Icons.add),
+            ),
+        ],
+      ),
       body: history == null
           ? const Center(child: CircularProgressIndicator())
           : Builder(
@@ -54,26 +91,34 @@ class _NutritionHistoryScreenState
                 return ListView(
                   padding: const EdgeInsets.all(20),
                   children: [
-                    Center(
-                      child: Column(
-                        children: [
-                          Text(
-                            today.calories?.toString() ?? '—',
-                            style: const TextStyle(
-                              fontSize: 40,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.accent,
+                    DataSourceToggle(mode: _mode, onChanged: _setMode),
+                    const SizedBox(height: 20),
+                    InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: isManual ? () => _openEntry(today) : null,
+                      child: Center(
+                        child: Column(
+                          children: [
+                            Text(
+                              today.calories != null
+                                  ? '${today.calories} / ${goals.calorieGoal}'
+                                  : '—',
+                              style: const TextStyle(
+                                fontSize: 40,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.accent,
+                              ),
                             ),
-                          ),
-                          const Text(
-                            'KCAL',
-                            style: TextStyle(
-                              fontSize: 12,
-                              letterSpacing: 1,
-                              color: AppColors.textSecondary,
+                            const Text(
+                              'KCAL',
+                              style: TextStyle(
+                                fontSize: 12,
+                                letterSpacing: 1,
+                                color: AppColors.textSecondary,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(height: 28),
@@ -95,22 +140,22 @@ class _NutritionHistoryScreenState
                             ),
                           ),
                           const SizedBox(height: 16),
-                          _MacroBar(
+                          MacroBar(
                             label: 'Protéines',
                             grams: today.proteinGrams,
-                            maxGrams: 200,
+                            maxGrams: goals.proteinGoal,
                           ),
                           const SizedBox(height: 12),
-                          _MacroBar(
+                          MacroBar(
                             label: 'Glucides',
                             grams: today.carbsGrams,
-                            maxGrams: 300,
+                            maxGrams: goals.carbsGoal,
                           ),
                           const SizedBox(height: 12),
-                          _MacroBar(
+                          MacroBar(
                             label: 'Lipides',
                             grams: today.fatGrams,
-                            maxGrams: 100,
+                            maxGrams: goals.fatGoal,
                           ),
                         ],
                       ),
@@ -128,35 +173,39 @@ class _NutritionHistoryScreenState
                     ...history.skip(1).map(
                       (day) => Padding(
                         padding: const EdgeInsets.only(bottom: 10),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 14,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.surface,
+                        child: Material(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          child: InkWell(
                             borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  _formatDay(day.date),
-                                  style: const TextStyle(
-                                    color: AppColors.textPrimary,
+                            onTap: isManual ? () => _openEntry(day) : null,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      _formatDay(day.date),
+                                      style: const TextStyle(
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                  Text(
+                                    day.calories != null
+                                        ? '${day.calories} kcal'
+                                        : '—',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Text(
-                                day.calories != null
-                                    ? '${day.calories} kcal'
-                                    : '—',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
@@ -165,54 +214,6 @@ class _NutritionHistoryScreenState
                 );
               },
             ),
-    );
-  }
-}
-
-class _MacroBar extends StatelessWidget {
-  const _MacroBar({required this.label, required this.grams, required this.maxGrams});
-
-  final String label;
-  final double? grams;
-  final double maxGrams;
-
-  @override
-  Widget build(BuildContext context) {
-    final double fraction = grams == null
-        ? 0.0
-        : (grams! / maxGrams).clamp(0.0, 1.0);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-            ),
-            Text(
-              grams != null ? '${grams!.round()}g' : '—',
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: LinearProgressIndicator(
-            value: fraction,
-            minHeight: 6,
-            backgroundColor: AppColors.border,
-            valueColor: const AlwaysStoppedAnimation(AppColors.accent),
-          ),
-        ),
-      ],
     );
   }
 }

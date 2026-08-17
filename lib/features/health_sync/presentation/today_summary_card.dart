@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../domain/daily_goals.dart';
 import '../domain/health_snapshot.dart';
-import '../domain/step_goal.dart';
 import 'health_sync_providers.dart';
+import 'macro_bar.dart';
 import 'nutrition_history_screen.dart';
 import 'steps_history_screen.dart';
 import 'steps_ring.dart';
@@ -115,6 +116,8 @@ class _TodaySummaryCardState extends ConsumerState<TodaySummaryCard> {
     }
 
     final snapshotAsync = ref.watch(todayHealthSnapshotProvider);
+    final DailyGoals goals =
+        ref.watch(dailyGoalsProvider).valueOrNull ?? DailyGoals.defaults;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -125,8 +128,7 @@ class _TodaySummaryCardState extends ConsumerState<TodaySummaryCard> {
           borderRadius: BorderRadius.circular(16),
         ),
         child: snapshotAsync.when(
-          data: (snapshot) =>
-              _SummaryRow(snapshot: snapshot, busy: _busy, onRefresh: _refresh),
+          data: (snapshot) => _SummaryRow(snapshot: snapshot, goals: goals),
           loading: () => const Padding(
             padding: EdgeInsets.symmetric(vertical: 24),
             child: Center(child: CircularProgressIndicator()),
@@ -140,23 +142,27 @@ class _TodaySummaryCardState extends ConsumerState<TodaySummaryCard> {
 }
 
 class _SummaryRow extends StatelessWidget {
-  const _SummaryRow({
-    required this.snapshot,
-    required this.busy,
-    required this.onRefresh,
-  });
+  const _SummaryRow({required this.snapshot, required this.goals});
 
   final HealthSnapshot? snapshot;
-  final bool busy;
-  final VoidCallback onRefresh;
+  final DailyGoals goals;
 
   @override
   Widget build(BuildContext context) {
     final int steps = snapshot?.steps ?? 0;
     final bool workoutDone = (snapshot?.workoutsCompleted ?? 0) > 0;
-    final int? calories = snapshot?.caloriesConsumed;
+    final int? caloriesBurned = snapshot?.caloriesBurned;
+    final int? caloriesConsumed = snapshot?.caloriesConsumed;
 
-    return Stack(
+    void openWorkouts() => Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const WorkoutsHistoryScreen()),
+    );
+    void openNutrition() => Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const NutritionHistoryScreen()),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -165,7 +171,7 @@ class _SummaryRow extends StatelessWidget {
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const StepsHistoryScreen()),
               ),
-              child: StepsRing(steps: steps, goal: defaultDailyStepGoal),
+              child: StepsRing(steps: steps, goal: goals.stepGoal),
             ),
             const SizedBox(width: 24),
             Expanded(
@@ -176,45 +182,54 @@ class _SummaryRow extends StatelessWidget {
                     label: 'Séance',
                     value: workoutDone ? 'Faite' : '—',
                     showCheck: workoutDone,
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const WorkoutsHistoryScreen(),
-                      ),
-                    ),
+                    onTap: openWorkouts,
                   ),
                   const SizedBox(height: 14),
                   _StatRow(
-                    label: 'Calories',
-                    value: calories != null ? '$calories kcal' : '—',
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const NutritionHistoryScreen(),
-                      ),
-                    ),
+                    label: 'Dépensées',
+                    value: caloriesBurned != null ? '$caloriesBurned kcal' : '—',
+                    onTap: openWorkouts,
+                  ),
+                  const SizedBox(height: 14),
+                  _StatRow(
+                    label: 'Consommées',
+                    value: caloriesConsumed != null
+                        ? '$caloriesConsumed / ${goals.calorieGoal} kcal'
+                        : '—',
+                    onTap: openNutrition,
                   ),
                 ],
               ),
             ),
           ],
         ),
-        Positioned(
-          top: -4,
-          right: -4,
-          child: busy
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : IconButton(
-                  visualDensity: VisualDensity.compact,
-                  icon: const Icon(Icons.refresh, size: 18),
-                  color: AppColors.textSecondary,
-                  style: const ButtonStyle(
-                    backgroundColor: WidgetStatePropertyAll(Colors.transparent),
-                  ),
-                  onPressed: onRefresh,
-                ),
+        const SizedBox(height: 20),
+        const Divider(height: 1),
+        const SizedBox(height: 20),
+        GestureDetector(
+          onTap: openNutrition,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              MacroBar(
+                label: 'Protéines',
+                grams: snapshot?.proteinGrams,
+                maxGrams: goals.proteinGoal,
+              ),
+              const SizedBox(height: 12),
+              MacroBar(
+                label: 'Glucides',
+                grams: snapshot?.carbsGrams,
+                maxGrams: goals.carbsGoal,
+              ),
+              const SizedBox(height: 12),
+              MacroBar(
+                label: 'Lipides',
+                grams: snapshot?.fatGrams,
+                maxGrams: goals.fatGoal,
+              ),
+            ],
+          ),
         ),
       ],
     );

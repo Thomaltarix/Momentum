@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/db/app_database.dart';
 import '../data/health_connect_client.dart';
 import '../data/health_sync_repository.dart';
+import '../domain/daily_goals.dart';
 import '../domain/health_snapshot.dart';
 
 final Provider<HealthSyncRepository> healthSyncRepositoryProvider =
@@ -16,4 +17,9 @@ final Provider<HealthSyncRepository> healthSyncRepositoryProvider =
 final StreamProvider<HealthSnapshot?> todayHealthSnapshotProvider =
     StreamProvider<HealthSnapshot?>((ref) {
       return ref.watch(healthSyncRepositoryProvider).watchToday();
+    });
+
+final StreamProvider<DailyGoals> dailyGoalsProvider =
+    StreamProvider<DailyGoals>((ref) {
+      return ref.watch(healthSyncRepositoryProvider).watchGoals();
     });

@@ -7,6 +7,7 @@ class HealthSnapshots extends Table {
   IntColumn get workoutsCompleted => integer().withDefault(const Constant(0))();
   DateTimeColumn get syncedAt => dateTime()();
   IntColumn get caloriesConsumed => integer().nullable()();
+  IntColumn get caloriesBurned => integer().nullable()();
   RealColumn get proteinGrams => real().nullable()();
   RealColumn get carbsGrams => real().nullable()();
   RealColumn get fatGrams => real().nullable()();

@@ -30,12 +30,81 @@ One row per routine per day it was completed. Streak math in `routines/domain` r
 |---|---|---|
 | `date` | date, PK | one row per day |
 | `steps` | int | from Health Connect (phone sensor) |
-| `caloriesConsumed` | int (nullable) | from Health Connect (MyFitnessPal) |
-| `proteinGrams` / `carbsGrams` / `fatGrams` | real (nullable) | from Health Connect, when the source app provides macro breakdown |
-| `workoutsCompleted` | int | count of workout sessions that day, from Health Connect (Lyfta) |
+| `caloriesConsumed` | int (nullable) | nutrition intake — Health Connect (MyFitnessPal) or today's manual entry, per `nutritionSource` |
+| `proteinGrams` / `carbsGrams` / `fatGrams` | real (nullable) | same source as `caloriesConsumed`, when the source provides a macro breakdown |
+| `workoutsCompleted` | int | count of workout sessions that day — Health Connect (Lyfta) or manual entries, per `workoutSource` |
+| `caloriesBurned` | int (nullable) | calories spent via exercise — summed from Health Connect's `totalEnergyBurned` or from today's manual workout entries, per `workoutSource` |
 | `syncedAt` | datetime | when this row was last refreshed from the platform API |
 
+Since Phase 5.5, `refreshToday()` checks `data_source_settings` before writing this row: a metric in `manual` mode is populated from that metric's manual table instead of Health Connect. Written on app foreground, permission grant, and immediately after any manual workout/nutrition write for today — see `architecture.md`.
+
 Refreshed on app foreground and after an explicit pull-to-refresh — not on a background schedule, to keep permission usage predictable and avoid battery complaints.
+
+## `data_source_settings` (feature: `health_sync`)
+
+Single-row table (`id` always `0`) — one source choice per metric, independent of the others.
+
+| Column | Type | Notes |
+|---|---|---|
+| `weightSource` / `workoutSource` / `nutritionSource` | text (`healthConnect` \| `manual`) | which source `HealthSyncRepository` reads that metric from; defaults to `healthConnect` |
+
+## `goals` (feature: `health_sync`)
+
+Single-row table (`id` always `0`), edited via `GoalsScreen`.
+
+| Column | Type | Notes |
+|---|---|---|
+| `stepGoal` | int | default 5000 |
+| `calorieGoal` | int | default 2200 |
+| `proteinGoal` / `carbsGoal` / `fatGoal` | real | grams; defaults 200/300/100 |
+
+Every column has a default matching what was previously hardcoded, so a missing row (fresh install, or before the user ever opens `GoalsScreen`) behaves exactly like before goals were configurable — see `DailyGoals.defaults`. Read by the home summary card, Pas/Nutrition history screens, and `gamification`'s step-goal streak check (via `HealthSyncRepository.fetchGoals()`, not a direct table read — `gamification` never imports `health_sync`'s data layer, per `architecture.md`'s dependency direction rule).
+
+Can be set two ways: by hand on `GoalsScreen`, or computed by `MacroCalculatorScreen` (see `macro_calculator_inputs` below) — applying the calculator overwrites `calorieGoal`/`proteinGoal`/`carbsGoal`/`fatGoal` but leaves `stepGoal` untouched, since the calculator has no opinion on steps.
+
+## `macro_calculator_inputs` (feature: `health_sync`)
+
+Single-row table (`id` always `0`) — remembers the last values typed into `MacroCalculatorScreen`, so reopening it doesn't start blank.
+
+| Column | Type | Notes |
+|---|---|---|
+| `sex` | text (`male` \| `female`) | default `male` — plain text rather than `textEnum`, converted manually in the repository, same rationale as `data_source_settings` |
+| `age` | int | default 30 |
+| `heightCm` | real | default 175 |
+| `activityLevel` | text (`sedentary` \| `light` \| `moderate` \| `active` \| `veryActive`) | default `moderate` — Mifflin-St Jeor activity multiplier, see `ActivityLevelDetails.multiplier` |
+| `objective` | text (`loseWeight` \| `maintain` \| `gainMuscle`) | default `maintain` — kcal/day adjustment on TDEE, see `NutritionObjectiveDetails.calorieAdjustment` |
+
+Weight is deliberately not a column here — `MacroCalculatorScreen` reads it live from `weight_entries`/Health Connect (whichever `weightSource` is active) each time it opens, so the calculator can never compute against a stale weight.
+
+## `weight_entries` (feature: `health_sync`)
+
+| Column | Type | Notes |
+|---|---|---|
+| `date` | date, PK | one weigh-in per day — re-entering the same day overwrites it (upsert) |
+| `kilograms` | real | |
+
+Only read when `weightSource = manual`. Never merged with Health Connect readings for the same day — a metric is on one source or the other, not both (see root `CLAUDE.md`).
+
+## `nutrition_entries` (feature: `health_sync`)
+
+| Column | Type | Notes |
+|---|---|---|
+| `date` | date, PK | one raw daily total per day, upsert like `weight_entries` |
+| `calories` | int | |
+| `proteinGrams` / `carbsGrams` / `fatGrams` | real (nullable) | optional — a number typed in, not a food diary |
+
+Only read when `nutritionSource = manual`.
+
+## `workout_entries` (feature: `health_sync`)
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | int, PK | auto-increment, unlike weight/nutrition — several sessions can happen the same day |
+| `category` | text (enum `WorkoutCategory`) | |
+| `start` / `end` | datetime | duration is entered directly in minutes on the add screen and converted to an end time, not picked as two times |
+| `caloriesBurned` | int (nullable) | |
+
+Only read when `workoutSource = manual`.
 
 ## `gamification_state` (feature: `gamification`)
 

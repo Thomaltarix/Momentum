@@ -62,14 +62,47 @@ Branches: `feat/design-system`, `feat/health-history`, `feat/weight-tracking` (s
 
 Verified on-device (Nothing Phone) once the phone became available: re-granting Health Connect permissions correctly listed all four categories including "Poids", and every screen showed real data — 7-day step history with correct goal-met checkmarks, an empty-but-honest state for Séances/Nutrition (no source app configured on this phone, shown as "—" rather than a fake zero), and a real weight entry on the Statut screen. One bug found and fixed this pass: the "Personnalisé" recurrence segment wrapped to two lines at that width — labels now wrapped in `FittedBox`. No crashes in logcat across the whole walkthrough.
 
+## Phase 5.5 — Manual data entry (done)
+
+Brought forward from Phase 7's "manual workout logging fallback" and widened to weight and nutrition too, prompted by the owner not knowing which app was writing their weight into Health Connect and wanting a way to enter it directly instead of guessing.
+
+- `DataSourceMode` (`healthConnect` \| `manual`) per metric, stored in a new single-row `data_source_settings` table — independent per metric, so e.g. weight can be manual while workouts stay on Lyfta.
+- Three new tables for typed-in entries: `weight_entries` and `nutrition_entries` (one row per day, upsert — re-entering a day overwrites it), `workout_entries` (auto-increment id, since several sessions can happen the same day). Schema bumped to v3.
+- `HealthSyncRepository`'s read methods branch on the mode instead of merging both sources — deliberately not merged, to avoid double-counting a session/day that later also gets synced from Health Connect.
+- Each of the three history screens (Statut/Séances/Nutrition) gained a `DataSourceToggle` (`SegmentedButton`, same widget reused across all three) and, in manual mode, an add button plus tap-to-edit on existing entries. Add/edit screens follow `add_routine_screen.dart`'s form style. Nutrition manual entry stays a raw daily total (kcal + optional macros), deliberately not a food diary — see root `CLAUDE.md`.
+
+Branch: `feat/manual-data-entry`. `flutter analyze` and `flutter test` clean. Verified on-device (Nothing Phone, reinstalled over the existing app via `adb install -r`): the v2→v3 migration ran cleanly against real data, and the toggle/add/edit flow works on all three screens (Statut, Séances, Nutrition). One bug found and fixed this pass: the home screen's Séance/Calories rows kept showing the old Health-Connect-derived value (or "—") after switching a metric to manual and adding today's entry, because `refreshToday()` — which populates the cached snapshot that card reads — only ever pulled from Health Connect, regardless of the per-metric mode. Fixed by making `refreshToday()` mode-aware and triggering it automatically after any manual workout/nutrition write for today. Same pass also added `caloriesBurned` to the snapshot (summed from workouts) and a fuller home card (Séance/Dépensées/Consommées + macro bars), schema v4.
+
+## Phase 5.6 — Configurable daily goals (done)
+
+Pulled forward from Phase 6's "set goals" item — the home card's step/calorie/macro figures were being compared against numbers nobody had chosen (`defaultDailyStepGoal = 5000`, and 200/300/100g macro bar scales hardcoded in two places).
+
+- `daily_goals` table (schema v5, single row like `data_source_settings`/`gamification_state`): `stepGoal`, `calorieGoal`, `proteinGoal`, `carbsGoal`, `fatGoal`, all with defaults matching the old hardcoded numbers so nothing jumps on upgrade before the user configures anything.
+- New `GoalsScreen`, reachable from a flag icon on the home `AppBar`, pre-filled with the current values.
+- Wired everywhere the old placeholders lived: the steps ring and goal-met checkmarks (home card, Pas screen), the macro bar scales (home card, Nutrition screen — extracted into a shared `MacroBar` widget along the way since Nutrition had its own private copy), the Consommées row's new "X / goal kcal" display, and — the one cross-feature catch — `gamification`'s streak "step goal met" check, which had its own independent `defaultDailyStepGoal` import that would otherwise have silently diverged from whatever the user configures.
+- `step_goal.dart` deleted; nothing references the old constant anymore.
+
+Branch: `feat/manual-data-entry`. `flutter analyze`/`flutter test` clean. Verified on-device: v4→v5 migration ran cleanly, the Goals form loads current values, edits, and saves without error.
+
+## Phase 5.7 — Macro calculator (done)
+
+Manually typing calorie/macro targets works, but most people don't know what number to type — this computes one from body parameters instead of leaving `GoalsScreen` asking for a figure out of thin air.
+
+- `computeMacroTargets()` (`health_sync/domain/macro_calculator.dart`): Mifflin-St Jeor BMR → TDEE (activity multiplier) → goal-adjusted calories (±500/0/+300 kcal for lose/maintain/gain) → protein 2.0 g/kg + fat 0.9 g/kg, carbs fill whatever calories remain (floored at 0). Pure function, unit tested (`test/features/health_sync/domain/macro_calculator_test.dart`) — both sexes, all activity levels, all objectives, and the carbs-can't-go-negative edge case for a small/older/sedentary/cutting profile.
+- `MacroCalculatorScreen`, reachable from a new row at the top of `GoalsScreen`. Sex/age/height/activity/objective are remembered between visits in a new single-row `macro_calculator_inputs` table (schema v6); weight is deliberately *not* stored there — it's read live from whichever weight source is active, so the calculator always reflects the real tracked weight instead of a copy that can go stale.
+- Recomputes on every field change (no separate "calculate" step) and "Appliquer aux objectifs" writes the result straight onto `DailyGoals`, overwriting calorie/macro goals but leaving `stepGoal` alone — the calculator has no opinion on steps.
+- The result itself lives in editable fields, not a read-only card — the formula is a starting point, not the final word. Editing a result field freezes it against further profile-driven recomputation (a `_resultsEdited` flag); a "Reprendre la suggestion" button resyncs on demand. Applying saves whatever's in the fields, which may no longer be the raw formula output.
+
+Branch: `feat/manual-data-entry`. `flutter analyze`/`flutter test` clean (6 new unit tests). Verified on-device: v5→v6 migration ran cleanly, weight pre-filled correctly from a real tracked entry (58.5 kg), the displayed result matched the formula computed by hand, editing a result field worked and surfaced the reset button, and applying updated both `GoalsScreen` and the home card immediately.
+
 ## Phase 6 — Onboarding and polish
 
-- First-run flow: set step goal, calorie/macro goals, add initial routines from a couple of suggested templates (e.g. "weigh-in after waking", "5000 steps", "morning workout").
-- Settings screen: edit goals, edit/delete routines, notification permission re-request if revoked.
+- First-run flow: add initial routines from a couple of suggested templates (e.g. "weigh-in after waking", "5000 steps", "morning workout") — goal-setting now covered by Phase 5.6's `GoalsScreen`.
+- Settings screen: edit/delete routines, notification permission re-request if revoked.
 
 ## Phase 7 — Deferred, not started unless requirements change
 
 - **iOS support** — architecturally possible (the `health` package abstracts HealthKit the same way), but untested until there's an iOS device available.
 - **Social / leaderboard gamification** — would require a backend (auth, shared state across users). Explicitly out of scope while gamification stays solo.
-- **Manual workout logging fallback** — only needed if Lyfta ever stops syncing to Health Connect; not built preemptively.
+- ~~**Manual workout logging fallback**~~ — done in Phase 5.5, widened to weight and nutrition too.
 - **Multi-device sync** — only relevant if a second device enters the picture; local-only Drift storage is sufficient today.

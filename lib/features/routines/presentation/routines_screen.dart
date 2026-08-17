@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../gamification/presentation/badges_screen.dart';
 import '../../gamification/presentation/gamification_status_strip.dart';
+import '../../health_sync/presentation/goals_screen.dart';
 import '../../health_sync/presentation/status_screen.dart';
 import '../../health_sync/presentation/today_summary_card.dart';
 import '../domain/routine.dart';
@@ -23,6 +24,13 @@ class RoutinesScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Momentum'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.flag_outlined),
+            tooltip: 'Objectifs',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const GoalsScreen()),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.monitor_weight_outlined),
             tooltip: 'Statut',

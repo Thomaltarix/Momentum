@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../domain/daily_goals.dart';
 import '../domain/daily_nutrition.dart';
 import '../domain/data_source_mode.dart';
 import 'add_nutrition_entry_screen.dart';
@@ -68,6 +69,8 @@ class _NutritionHistoryScreenState
   Widget build(BuildContext context) {
     final history = _history;
     final isManual = _mode == DataSourceMode.manual;
+    final DailyGoals goals =
+        ref.watch(dailyGoalsProvider).valueOrNull ?? DailyGoals.defaults;
 
     return Scaffold(
       appBar: AppBar(
@@ -97,7 +100,9 @@ class _NutritionHistoryScreenState
                         child: Column(
                           children: [
                             Text(
-                              today.calories?.toString() ?? '—',
+                              today.calories != null
+                                  ? '${today.calories} / ${goals.calorieGoal}'
+                                  : '—',
                               style: const TextStyle(
                                 fontSize: 40,
                                 fontWeight: FontWeight.w700,
@@ -138,19 +143,19 @@ class _NutritionHistoryScreenState
                           MacroBar(
                             label: 'Protéines',
                             grams: today.proteinGrams,
-                            maxGrams: 200,
+                            maxGrams: goals.proteinGoal,
                           ),
                           const SizedBox(height: 12),
                           MacroBar(
                             label: 'Glucides',
                             grams: today.carbsGrams,
-                            maxGrams: 300,
+                            maxGrams: goals.carbsGoal,
                           ),
                           const SizedBox(height: 12),
                           MacroBar(
                             label: 'Lipides',
                             grams: today.fatGrams,
-                            maxGrams: 100,
+                            maxGrams: goals.fatGoal,
                           ),
                         ],
                       ),

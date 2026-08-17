@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../domain/daily_goals.dart';
 import '../domain/health_snapshot.dart';
-import '../domain/step_goal.dart';
 import 'health_sync_providers.dart';
 import 'macro_bar.dart';
 import 'nutrition_history_screen.dart';
@@ -116,6 +116,8 @@ class _TodaySummaryCardState extends ConsumerState<TodaySummaryCard> {
     }
 
     final snapshotAsync = ref.watch(todayHealthSnapshotProvider);
+    final DailyGoals goals =
+        ref.watch(dailyGoalsProvider).valueOrNull ?? DailyGoals.defaults;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -126,7 +128,7 @@ class _TodaySummaryCardState extends ConsumerState<TodaySummaryCard> {
           borderRadius: BorderRadius.circular(16),
         ),
         child: snapshotAsync.when(
-          data: (snapshot) => _SummaryRow(snapshot: snapshot),
+          data: (snapshot) => _SummaryRow(snapshot: snapshot, goals: goals),
           loading: () => const Padding(
             padding: EdgeInsets.symmetric(vertical: 24),
             child: Center(child: CircularProgressIndicator()),
@@ -140,9 +142,10 @@ class _TodaySummaryCardState extends ConsumerState<TodaySummaryCard> {
 }
 
 class _SummaryRow extends StatelessWidget {
-  const _SummaryRow({required this.snapshot});
+  const _SummaryRow({required this.snapshot, required this.goals});
 
   final HealthSnapshot? snapshot;
+  final DailyGoals goals;
 
   @override
   Widget build(BuildContext context) {
@@ -168,7 +171,7 @@ class _SummaryRow extends StatelessWidget {
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const StepsHistoryScreen()),
               ),
-              child: StepsRing(steps: steps, goal: defaultDailyStepGoal),
+              child: StepsRing(steps: steps, goal: goals.stepGoal),
             ),
             const SizedBox(width: 24),
             Expanded(
@@ -190,7 +193,9 @@ class _SummaryRow extends StatelessWidget {
                   const SizedBox(height: 14),
                   _StatRow(
                     label: 'Consommées',
-                    value: caloriesConsumed != null ? '$caloriesConsumed kcal' : '—',
+                    value: caloriesConsumed != null
+                        ? '$caloriesConsumed / ${goals.calorieGoal} kcal'
+                        : '—',
                     onTap: openNutrition,
                   ),
                 ],
@@ -209,19 +214,19 @@ class _SummaryRow extends StatelessWidget {
               MacroBar(
                 label: 'Protéines',
                 grams: snapshot?.proteinGrams,
-                maxGrams: 200,
+                maxGrams: goals.proteinGoal,
               ),
               const SizedBox(height: 12),
               MacroBar(
                 label: 'Glucides',
                 grams: snapshot?.carbsGrams,
-                maxGrams: 300,
+                maxGrams: goals.carbsGoal,
               ),
               const SizedBox(height: 12),
               MacroBar(
                 label: 'Lipides',
                 grams: snapshot?.fatGrams,
-                maxGrams: 100,
+                maxGrams: goals.fatGoal,
               ),
             ],
           ),

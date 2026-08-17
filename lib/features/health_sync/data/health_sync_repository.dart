@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import '../../../core/db/app_database.dart';
+import '../domain/daily_goals.dart';
 import '../domain/daily_nutrition.dart';
 import '../domain/daily_steps.dart';
 import '../domain/data_source_mode.dart';
@@ -273,6 +274,46 @@ class HealthSyncRepository {
         )
         .toList();
   }
+
+  // --- Daily goals ---
+
+  Stream<DailyGoals> watchGoals() {
+    return (_db.select(
+      _db.goals,
+    )..where((t) => t.id.equals(0))).watchSingleOrNull().map(
+      (row) => row == null ? DailyGoals.defaults : _goalsToDomain(row),
+    );
+  }
+
+  Future<DailyGoals> fetchGoals() async {
+    final row = await (_db.select(
+      _db.goals,
+    )..where((t) => t.id.equals(0))).getSingleOrNull();
+    return row == null ? DailyGoals.defaults : _goalsToDomain(row);
+  }
+
+  Future<void> updateGoals(DailyGoals goals) {
+    return _db
+        .into(_db.goals)
+        .insertOnConflictUpdate(
+          GoalsCompanion.insert(
+            id: const Value(0),
+            stepGoal: Value(goals.stepGoal),
+            calorieGoal: Value(goals.calorieGoal),
+            proteinGoal: Value(goals.proteinGoal),
+            carbsGoal: Value(goals.carbsGoal),
+            fatGoal: Value(goals.fatGoal),
+          ),
+        );
+  }
+
+  DailyGoals _goalsToDomain(GoalsRow row) => DailyGoals(
+    stepGoal: row.stepGoal,
+    calorieGoal: row.calorieGoal,
+    proteinGoal: row.proteinGoal,
+    carbsGoal: row.carbsGoal,
+    fatGoal: row.fatGoal,
+  );
 
   /// Recomputes the cached "today" snapshot that the home summary card and
   /// gamification read. Health Connect provides the baseline; workouts and

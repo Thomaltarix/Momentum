@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../features/gamification/data/gamification_tables.dart';
 import '../../features/health_sync/data/data_source_settings_table.dart';
+import '../../features/health_sync/data/goals_table.dart';
 import '../../features/health_sync/data/health_snapshots_table.dart';
 import '../../features/health_sync/data/manual_entries_tables.dart';
 import '../../features/health_sync/domain/workout_category.dart';
@@ -28,6 +29,7 @@ part 'app_database.g.dart';
     WeightEntries,
     NutritionEntries,
     WorkoutEntries,
+    Goals,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -38,10 +40,12 @@ class AppDatabase extends _$AppDatabase {
   // v3: + DataSourceSettings, WeightEntries, NutritionEntries, WorkoutEntries
   // (manual data entry, Phase 7 brought forward).
   // v4: + HealthSnapshots.caloriesBurned (calories spent via workouts,
-  // shown on the home summary card). Never edit a past migration step —
-  // add a new one instead, per claude/data-model.md.
+  // shown on the home summary card).
+  // v5: + Goals (user-configurable step/calorie/macro targets, replacing
+  // the hardcoded placeholders used until Phase 6). Never edit a past
+  // migration step — add a new one instead, per claude/data-model.md.
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -59,6 +63,9 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 4) {
         await m.addColumn(healthSnapshots, healthSnapshots.caloriesBurned);
+      }
+      if (from < 5) {
+        await m.createTable(goals);
       }
     },
   );

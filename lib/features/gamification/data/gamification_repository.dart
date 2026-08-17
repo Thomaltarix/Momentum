@@ -2,7 +2,6 @@ import 'package:drift/drift.dart';
 
 import '../../../core/db/app_database.dart';
 import '../../health_sync/data/health_sync_repository.dart';
-import '../../health_sync/domain/step_goal.dart';
 import '../../routines/data/routines_repository.dart';
 import '../../routines/domain/routine.dart';
 import '../../routines/domain/routine_schedule.dart';
@@ -56,7 +55,8 @@ class GamificationRepository {
     final bool allRoutinesDone = dueRoutines.every((routine) => completedIds.contains(routine.id));
 
     final snapshot = await _healthSyncRepository.fetchSnapshot(day);
-    final bool stepsGoalMet = (snapshot?.steps ?? 0) >= defaultDailyStepGoal;
+    final goals = await _healthSyncRepository.fetchGoals();
+    final bool stepsGoalMet = (snapshot?.steps ?? 0) >= goals.stepGoal;
 
     return allRoutinesDone && stepsGoalMet;
   }

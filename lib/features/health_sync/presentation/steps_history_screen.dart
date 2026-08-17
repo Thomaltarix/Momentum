@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../domain/daily_goals.dart';
 import '../domain/daily_steps.dart';
-import '../domain/step_goal.dart';
 import 'health_sync_providers.dart';
 import 'steps_ring.dart';
 
@@ -37,6 +37,9 @@ class _StepsHistoryScreenState extends ConsumerState<StepsHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     final history = _history;
+    final int goal =
+        (ref.watch(dailyGoalsProvider).valueOrNull ?? DailyGoals.defaults)
+            .stepGoal;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Pas')),
@@ -48,7 +51,7 @@ class _StepsHistoryScreenState extends ConsumerState<StepsHistoryScreen> {
                 Center(
                   child: StepsRing(
                     steps: history.last.steps,
-                    goal: defaultDailyStepGoal,
+                    goal: goal,
                     size: 160,
                     strokeWidth: 12,
                   ),
@@ -74,7 +77,7 @@ class _StepsHistoryScreenState extends ConsumerState<StepsHistoryScreen> {
                       const SizedBox(height: 16),
                       SizedBox(
                         height: 140,
-                        child: _StepsBarChart(history: history),
+                        child: _StepsBarChart(history: history, goal: goal),
                       ),
                     ],
                   ),
@@ -118,7 +121,7 @@ class _StepsHistoryScreenState extends ConsumerState<StepsHistoryScreen> {
                               color: AppColors.textPrimary,
                             ),
                           ),
-                          if (day.steps >= defaultDailyStepGoal) ...[
+                          if (day.steps >= goal) ...[
                             const SizedBox(width: 8),
                             const Icon(
                               Icons.check_circle,
@@ -148,14 +151,15 @@ class _StepsHistoryScreenState extends ConsumerState<StepsHistoryScreen> {
 }
 
 class _StepsBarChart extends StatelessWidget {
-  const _StepsBarChart({required this.history});
+  const _StepsBarChart({required this.history, required this.goal});
 
   final List<DailySteps> history;
+  final int goal;
 
   @override
   Widget build(BuildContext context) {
     final maxSteps = history.fold<int>(
-      defaultDailyStepGoal,
+      goal,
       (max, day) => day.steps > max ? day.steps : max,
     );
 
@@ -209,7 +213,7 @@ class _StepsBarChart extends StatelessWidget {
               barRods: [
                 BarChartRodData(
                   toY: history[i].steps.toDouble(),
-                  color: history[i].steps >= defaultDailyStepGoal
+                  color: history[i].steps >= goal
                       ? AppColors.accent
                       : AppColors.border,
                   width: 18,

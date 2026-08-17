@@ -60,6 +60,22 @@ Single-row table (`id` always `0`), edited via `GoalsScreen`.
 
 Every column has a default matching what was previously hardcoded, so a missing row (fresh install, or before the user ever opens `GoalsScreen`) behaves exactly like before goals were configurable — see `DailyGoals.defaults`. Read by the home summary card, Pas/Nutrition history screens, and `gamification`'s step-goal streak check (via `HealthSyncRepository.fetchGoals()`, not a direct table read — `gamification` never imports `health_sync`'s data layer, per `architecture.md`'s dependency direction rule).
 
+Can be set two ways: by hand on `GoalsScreen`, or computed by `MacroCalculatorScreen` (see `macro_calculator_inputs` below) — applying the calculator overwrites `calorieGoal`/`proteinGoal`/`carbsGoal`/`fatGoal` but leaves `stepGoal` untouched, since the calculator has no opinion on steps.
+
+## `macro_calculator_inputs` (feature: `health_sync`)
+
+Single-row table (`id` always `0`) — remembers the last values typed into `MacroCalculatorScreen`, so reopening it doesn't start blank.
+
+| Column | Type | Notes |
+|---|---|---|
+| `sex` | text (`male` \| `female`) | default `male` — plain text rather than `textEnum`, converted manually in the repository, same rationale as `data_source_settings` |
+| `age` | int | default 30 |
+| `heightCm` | real | default 175 |
+| `activityLevel` | text (`sedentary` \| `light` \| `moderate` \| `active` \| `veryActive`) | default `moderate` — Mifflin-St Jeor activity multiplier, see `ActivityLevelDetails.multiplier` |
+| `objective` | text (`loseWeight` \| `maintain` \| `gainMuscle`) | default `maintain` — kcal/day adjustment on TDEE, see `NutritionObjectiveDetails.calorieAdjustment` |
+
+Weight is deliberately not a column here — `MacroCalculatorScreen` reads it live from `weight_entries`/Health Connect (whichever `weightSource` is active) each time it opens, so the calculator can never compute against a stale weight.
+
 ## `weight_entries` (feature: `health_sync`)
 
 | Column | Type | Notes |

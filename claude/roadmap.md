@@ -84,6 +84,16 @@ Pulled forward from Phase 6's "set goals" item — the home card's step/calorie/
 
 Branch: `feat/manual-data-entry`. `flutter analyze`/`flutter test` clean. Verified on-device: v4→v5 migration ran cleanly, the Goals form loads current values, edits, and saves without error.
 
+## Phase 5.7 — Macro calculator (done)
+
+Manually typing calorie/macro targets works, but most people don't know what number to type — this computes one from body parameters instead of leaving `GoalsScreen` asking for a figure out of thin air.
+
+- `computeMacroTargets()` (`health_sync/domain/macro_calculator.dart`): Mifflin-St Jeor BMR → TDEE (activity multiplier) → goal-adjusted calories (±500/0/+300 kcal for lose/maintain/gain) → protein 2.0 g/kg + fat 0.9 g/kg, carbs fill whatever calories remain (floored at 0). Pure function, unit tested (`test/features/health_sync/domain/macro_calculator_test.dart`) — both sexes, all activity levels, all objectives, and the carbs-can't-go-negative edge case for a small/older/sedentary/cutting profile.
+- `MacroCalculatorScreen`, reachable from a new row at the top of `GoalsScreen`. Sex/age/height/activity/objective are remembered between visits in a new single-row `macro_calculator_inputs` table (schema v6); weight is deliberately *not* stored there — it's read live from whichever weight source is active, so the calculator always reflects the real tracked weight instead of a copy that can go stale.
+- Recomputes on every field change (no separate "calculate" step) and "Appliquer aux objectifs" writes the result straight onto `DailyGoals`, overwriting calorie/macro goals but leaving `stepGoal` alone — the calculator has no opinion on steps.
+
+Branch: `feat/manual-data-entry`. `flutter analyze`/`flutter test` clean (6 new unit tests). Verified on-device: v5→v6 migration ran cleanly, weight pre-filled correctly from a real tracked entry (58.5 kg), the displayed result matched the formula computed by hand, and applying it updated both `GoalsScreen` and the home card immediately.
+
 ## Phase 6 — Onboarding and polish
 
 - First-run flow: add initial routines from a couple of suggested templates (e.g. "weigh-in after waking", "5000 steps", "morning workout") — goal-setting now covered by Phase 5.6's `GoalsScreen`.

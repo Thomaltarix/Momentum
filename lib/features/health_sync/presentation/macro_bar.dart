@@ -34,7 +34,7 @@ class MacroBar extends StatelessWidget {
               style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
             ),
             Text(
-              grams != null ? '${grams!.round()}g' : '—',
+              '${grams != null ? grams!.round() : '—'}/${maxGrams.round()}g',
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
